@@ -1,0 +1,37 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2E8B8B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#50C878;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="60" cy="60" r="55" fill="url(#logoGradient)" stroke="#1A5F5F" stroke-width="2"/>
+  
+  <!-- Mosque Silhouette -->
+  <g transform="translate(60,60)">
+    <!-- Main Dome -->
+    <ellipse cx="0" cy="-10" rx="25" ry="15" fill="white" opacity="0.9"/>
+    
+    <!-- Minarets -->
+    <rect x="-35" y="-5" width="6" height="30" fill="white" opacity="0.9"/>
+    <rect x="29" y="-5" width="6" height="30" fill="white" opacity="0.9"/>
+    
+    <!-- Minaret Tops -->
+    <ellipse cx="-32" cy="-8" rx="4" ry="3" fill="white" opacity="0.9"/>
+    <ellipse cx="32" cy="-8" rx="4" ry="3" fill="white" opacity="0.9"/>
+    
+    <!-- Main Building -->
+    <rect x="-20" y="5" width="40" height="20" fill="white" opacity="0.9"/>
+    
+    <!-- Entrance Arch -->
+    <path d="M -8 25 Q 0 15 8 25 Z" fill="#2E8B8B"/>
+    
+    <!-- Crescent Moon -->
+    <path d="M -2 -25 Q 2 -30 6 -25 Q 2 -20 -2 -25 Z" fill="#FFD700"/>
+  </g>
+  
+  <!-- Islamic Pattern Border -->
+  <circle cx="60" cy="60" r="55" fill="none" stroke="#FFD700" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>
+</svg>
