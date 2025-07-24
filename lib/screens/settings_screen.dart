@@ -114,15 +114,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Prayer Notifications Section
                 _buildSectionCard(
                   'Prayer Notifications',
-                  Icons.notifications,
-                  [
-                    _buildPrayerNotificationTile('Fajr', 'fajr', settingsProvider),
-                    _buildPrayerNotificationTile('Dhuhr', 'dhuhr', settingsProvider),
-                    _buildPrayerNotificationTile('Asr', 'asr', settingsProvider),
-                    _buildPrayerNotificationTile('Maghrib', 'maghrib', settingsProvider),
-                    _buildPrayerNotificationTile('Isha', 'isha', settingsProvider),
-                    _buildPrayerNotificationTile('Imsak', 'imsak', settingsProvider),
-                  ],
+                  Icons.notifications_active,
+                  prayerProvider.prayerNames.map((prayerKey) =>
+                    _buildPrayerNotificationTile(
+                      settingsProvider.prayerDisplayNames[prayerKey] ?? (prayerKey.isNotEmpty ? prayerKey[0].toUpperCase() + prayerKey.substring(1) : prayerKey),
+                      prayerKey,
+                      settingsProvider,
+                    ),
+                  ).toList(),
                 ),
                 
                 const SizedBox(height: 16),
@@ -197,7 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildInfoTile(
                       'App Version',
-                      '1.0.1(1)',
+                      '1.0.2(2)',
                       Icons.info_outline,
                     ),
                     _buildInfoTile(
@@ -223,37 +222,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
   
   Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
-    return Container(
-      decoration: AppTheme.islamicCardDecoration(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Icon(
-                  icon,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppTheme.primaryGold
-                      : AppTheme.primaryTeal,
-                ),
-                const SizedBox(width: 12),
+                Icon(icon, color: AppTheme.primaryTeal),
+                const SizedBox(width: 8),
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppTheme.primaryGold
-                        : AppTheme.primaryTeal,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryTeal,
+                      ),
                 ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          ...children,
-        ],
+            const SizedBox(height: 12),
+            ...children,
+            // Add test notification button
+            ListTile(
+              leading: const Icon(Icons.notifications_active, color: Colors.blue),
+              title: const Text('Send Test Notification'),
+              subtitle: const Text('Debug: Check if notifications work on your device'),
+              onTap: () async {
+                await NotificationService.showTestNotification();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Test notification sent!')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -318,7 +326,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isEnabled = settingsProvider.isNotificationEnabled(prayerKey);
     final isAzanEnabled = settingsProvider.isAzanEnabled(prayerKey);
     final isFullAzan = settingsProvider.isFullAzanEnabled(prayerKey);
-    
+
     return ExpansionTile(
       leading: Icon(
         isEnabled ? Icons.notifications_active : Icons.notifications_off,
@@ -349,26 +357,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? AppTheme.primaryGold
                     : AppTheme.primaryTeal,
               ),
-              if (isEnabled) ...[
-                SwitchListTile(
-                  title: const Text('Enable Azan Sound'),
-                  value: isAzanEnabled,
-                  onChanged: (_) => settingsProvider.toggleAzan(prayerKey),
-                  activeColor: Theme.of(context).brightness == Brightness.dark
-                      ? AppTheme.primaryGold
-                      : AppTheme.primaryTeal,
+              if (isEnabled)
+                Column(
+                  children: [
+                    // Segmented control for azan sound
+                    Row(
+                      children: [
+                        const Text('Azan Sound:'),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Tooltip(
+                                message: 'No sound, silent notification only.',
+                                child: ChoiceChip(
+                                  label: const Text('Silent'),
+                                  selected: !isAzanEnabled,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      settingsProvider.setAzanSound(prayerKey, false, false);
+                                    }
+                                  },
+                                ),
+                              ),
+                              Tooltip(
+                                message: 'Short azan tone will play.',
+                                child: ChoiceChip(
+                                  label: const Text('Short'),
+                                  selected: isAzanEnabled && !isFullAzan,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      settingsProvider.setAzanSound(prayerKey, true, false);
+                                    }
+                                  },
+                                ),
+                              ),
+                              Tooltip(
+                                message: 'Full azan will play.',
+                                child: ChoiceChip(
+                                  label: const Text('Full'),
+                                  selected: isAzanEnabled && isFullAzan,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      settingsProvider.setAzanSound(prayerKey, true, true);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                if (isAzanEnabled)
-                  SwitchListTile(
-                    title: const Text('Full Azan'),
-                    subtitle: const Text('Use full Azan instead of short tone'),
-                    value: isFullAzan,
-                    onChanged: (_) => settingsProvider.toggleFullAzan(prayerKey),
-                    activeColor: Theme.of(context).brightness == Brightness.dark
-                        ? AppTheme.primaryGold
-                        : AppTheme.primaryTeal,
-                  ),
-              ],
             ],
           ),
         ),

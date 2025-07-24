@@ -27,7 +27,7 @@ class PrayerProvider with ChangeNotifier {
   String get asrMethod => _asrMethod;
 
   // Prayer time names
-  final List<String> prayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Imsak'];
+  final List<String> prayerNames = ['Fajr', 'Sunrise', 'Dhuha', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Imsak'];
   
   // Calculation methods
   final Map<String, String> calculationMethods = {
@@ -324,6 +324,8 @@ class PrayerProvider with ChangeNotifier {
     // Schedule notifications for each prayer
     final prayers = {
       'Fajr': _prayerTimes!.fajr,
+      'Sunrise': _prayerTimes!.sunrise,
+      'Dhuha': _prayerTimes!.dhuha,
       'Dhuhr': _prayerTimes!.dhuhr,
       'Asr': _prayerTimes!.asr,
       'Maghrib': _prayerTimes!.maghrib,

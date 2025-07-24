@@ -106,7 +106,7 @@ class LicenseScreen extends StatelessWidget {
           
           // Version
           Text(
-            'Version 1.0.0(2)',
+            'Version 1.0.2(2)',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Colors.grey[600],
             ),

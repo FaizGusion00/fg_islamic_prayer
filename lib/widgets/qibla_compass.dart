@@ -68,29 +68,70 @@ class _QiblaCompassState extends State<QiblaCompass>
         final qiblaDirection = qiblaProvider.qiblaDirection ?? 0;
         final isPointingToQibla = qiblaProvider.isPointingToQibla;
         final qiblaAngle = qiblaProvider.qiblaAngle ?? 0;
-
-        return Container(
-          width: 320,
-          height: 320,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Main Compass Container
-              _buildMainCompass(compassHeading, qiblaDirection, isPointingToQibla),
-              
-              // Qibla Needle (points to Qibla direction)
-              _buildQiblaNeedle(qiblaDirection - compassHeading, isPointingToQibla),
-              
-              // Center Kaaba with status
-              _buildCenterKaaba(isPointingToQibla, qiblaAngle),
-              
-              // North Indicator (fixed)
-              _buildNorthIndicator(),
-              
-              // Accuracy Ring
-              _buildAccuracyRing(qiblaAngle),
-            ],
-          ),
+        final needsCalibration = qiblaProvider.accuracyLevel == 'adjust' || !qiblaProvider.isCompassStable;
+        final usingFallbackDeclination = qiblaProvider.magneticDeclination == null;
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final compassSize = constraints.maxWidth < 400 ? constraints.maxWidth * 0.9 : 320.0;
+            return Column(
+              children: [
+                Container(
+                  width: compassSize,
+                  height: compassSize,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      _buildMainCompass(compassHeading, qiblaDirection, isPointingToQibla),
+                      _buildQiblaNeedle(qiblaDirection - compassHeading, isPointingToQibla),
+                      _buildCenterKaaba(isPointingToQibla, qiblaAngle),
+                      _buildNorthIndicator(),
+                      _buildAccuracyRing(qiblaAngle),
+                    ],
+                  ),
+                ),
+                _buildAccuracyIndicator(qiblaAngle.abs()),
+                if (needsCalibration)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Compass accuracy is poor. Move your phone in a figure-8 motion to calibrate.',
+                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                if (usingFallbackDeclination)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Text(
+                      'Warning: Using fallback magnetic declination. Accuracy may be reduced.',
+                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await qiblaProvider.refreshLocation();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Location refreshed!'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Refresh Location'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryTeal,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            );
+          },
         );
       },
     );
@@ -179,62 +220,89 @@ class _QiblaCompassState extends State<QiblaCompass>
   }
 
   Widget _buildCenterKaaba(bool isPointingToQibla, double qiblaAngle) {
-    final accuracy = qiblaAngle.abs();
-    Color statusColor;
-    IconData statusIcon;
-    
-    if (accuracy <= 2) {
-      statusColor = Colors.green;
-      statusIcon = Icons.check_circle;
-    } else if (accuracy <= 10) {
-      statusColor = Colors.orange;
-      statusIcon = Icons.adjust;
-    } else {
-      statusColor = Colors.red;
-      statusIcon = Icons.navigation;
-    }
+    return Consumer<QiblaProvider>(
+      builder: (context, qiblaProvider, child) {
+        final accuracy = qiblaAngle.abs();
+        final accuracyLevel = qiblaProvider.accuracyLevel;
+        final overallStatus = qiblaProvider.overallAccuracyStatus;
+        
+        Color statusColor;
+        IconData statusIcon;
+        
+        // Enhanced color coding based on accuracy level
+        switch (accuracyLevel) {
+          case 'perfect':
+            statusColor = const Color(0xFF00C853); // Bright green
+            statusIcon = Icons.verified;
+            break;
+          case 'excellent':
+            statusColor = const Color(0xFF4CAF50); // Green
+            statusIcon = Icons.check_circle;
+            break;
+          case 'very_good':
+            statusColor = const Color(0xFF8BC34A); // Light green
+            statusIcon = Icons.check_circle_outline;
+            break;
+          case 'good':
+            statusColor = const Color(0xFFFF9800); // Orange
+            statusIcon = Icons.adjust;
+            break;
+          case 'fair':
+            statusColor = const Color(0xFFFF5722); // Deep orange
+            statusIcon = Icons.navigation;
+            break;
+          default:
+            statusColor = const Color(0xFFF44336); // Red
+            statusIcon = Icons.error;
+        }
 
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: isPointingToQibla ? _pulseAnimation.value : 1.0,
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  statusColor,
-                  statusColor.withValues(alpha: 0.8),
-                ],
+        return AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: (accuracyLevel == 'perfect' || accuracyLevel == 'excellent') ? _pulseAnimation.value : 1.0,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      statusColor,
+                      statusColor.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: statusColor.withValues(alpha: 0.4),
+                      blurRadius: (accuracyLevel == 'perfect' || accuracyLevel == 'excellent') ? 20 : 15,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.mosque,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 2),
+                    Icon(
+                      statusIcon,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                  ],
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: statusColor.withValues(alpha: 0.4),
-                  blurRadius: isPointingToQibla ? 20 : 15,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.mosque,
-                  color: Colors.white,
-                  size: 28,
-                ),
-                const SizedBox(height: 2),
-                Icon(
-                  statusIcon,
-                  color: Colors.white,
-                  size: 12,
-                ),
-              ],
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -293,6 +361,256 @@ class _QiblaCompassState extends State<QiblaCompass>
           isDarkMode: Theme.of(context).brightness == Brightness.dark,
         ),
       ),
+    );
+  }
+
+  Widget _buildAccuracyIndicator(double accuracy) {
+    return Consumer<QiblaProvider>(
+      builder: (context, qiblaProvider, child) {
+        final accuracyLevel = qiblaProvider.accuracyLevel;
+        final overallStatus = qiblaProvider.overallAccuracyStatus;
+        final locationAccuracy = qiblaProvider.locationAccuracy;
+        final isCompassStable = qiblaProvider.isCompassStable;
+        final needsRefresh = qiblaProvider.needsLocationRefresh;
+        
+        String accuracyText;
+        Color accuracyColor;
+        
+        // Enhanced accuracy text based on provider's accuracy level
+        switch (accuracyLevel) {
+          case 'perfect':
+            accuracyText = 'Perfect (±${accuracy.toStringAsFixed(1)}°)';
+            accuracyColor = const Color(0xFF00C853);
+            break;
+          case 'excellent':
+            accuracyText = 'Excellent (±${accuracy.toStringAsFixed(1)}°)';
+            accuracyColor = const Color(0xFF4CAF50);
+            break;
+          case 'very_good':
+            accuracyText = 'Very Good (±${accuracy.toStringAsFixed(1)}°)';
+            accuracyColor = const Color(0xFF8BC34A);
+            break;
+          case 'good':
+            accuracyText = 'Good (±${accuracy.toStringAsFixed(1)}°)';
+            accuracyColor = const Color(0xFFFF9800);
+            break;
+          case 'fair':
+            accuracyText = 'Fair (±${accuracy.toStringAsFixed(1)}°)';
+            accuracyColor = const Color(0xFFFF5722);
+            break;
+          default:
+            accuracyText = 'Poor (±${accuracy.toStringAsFixed(1)}°)';
+            accuracyColor = const Color(0xFFF44336);
+        }
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppTheme.darkBlue.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: accuracyColor.withValues(alpha: 0.3),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Main accuracy status
+              Row(
+                children: [
+                  Icon(
+                    Icons.gps_fixed,
+                    color: accuracyColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      accuracyText,
+                      style: TextStyle(
+                        color: accuracyColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              // Status indicators row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatusIndicator(
+                     'Location',
+                     locationAccuracy != 'poor' && locationAccuracy != 'unknown',
+                     Icons.location_on,
+                     locationAccuracy != 'unknown' ? locationAccuracy! : 'N/A',
+                   ),
+                  _buildStatusIndicator(
+                    'Compass',
+                    isCompassStable,
+                    Icons.explore,
+                    isCompassStable ? 'Stable' : 'Unstable',
+                  ),
+                  _buildStatusIndicator(
+                    'Status',
+                    !needsRefresh,
+                    needsRefresh ? Icons.refresh : Icons.check_circle,
+                    needsRefresh ? 'Refresh' : 'Ready',
+                  ),
+                ],
+              ),
+              
+              // Overall status message
+               if (overallStatus.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: accuracyColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    overallStatus,
+                    style: TextStyle(
+                      color: accuracyColor,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              
+              // Recalibration button for poor accuracy
+               if (accuracyLevel == 'poor' || needsRefresh) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    qiblaProvider.recalibrate();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Recalibrating Qibla direction...'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Recalibrate'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accuracyColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusIndicator(String label, bool isGood, IconData icon, String value) {
+    final color = isGood ? Colors.green : Colors.orange;
+    String tooltipText;
+    switch (label) {
+      case 'Location':
+        tooltipText = 'Shows the accuracy of your GPS location. "Very good" means your position is accurate.';
+        break;
+      case 'Compass':
+        tooltipText = 'Shows if your device compass is stable. "Stable" means the sensor readings are consistent.';
+        break;
+      case 'Status':
+        tooltipText = 'Indicates if the app is ready to calculate Qibla. "Ready" means all data is available.';
+        break;
+      default:
+        tooltipText = '';
+    }
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 16,
+            ),
+            const SizedBox(width: 2),
+            Tooltip(
+              message: tooltipText,
+              child: Icon(Icons.info_outline, color: Colors.grey, size: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 9,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecalibrateButton() {
+    return Consumer<QiblaProvider>(
+      builder: (context, qiblaProvider, child) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              await qiblaProvider.recalibrate();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Qibla direction recalibrated successfully!'),
+                    backgroundColor: Colors.green,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Recalibrate Qibla'),
+            style: ElevatedButton.styleFrom(
+               backgroundColor: AppTheme.emeraldGreen,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+            ),
+          ),
+        );
+      },
     );
   }
 }

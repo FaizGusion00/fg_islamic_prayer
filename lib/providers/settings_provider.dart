@@ -10,6 +10,8 @@ class SettingsProvider with ChangeNotifier {
   // Notification settings for each prayer
   Map<String, bool> _notificationEnabled = {
     'fajr': true,
+    'sunrise': false,
+    'dhuha': false,
     'dhuhr': true,
     'asr': true,
     'maghrib': true,
@@ -20,6 +22,8 @@ class SettingsProvider with ChangeNotifier {
   // Azan settings for each prayer
   Map<String, bool> _azanEnabled = {
     'fajr': true,
+    'sunrise': false,
+    'dhuha': false,
     'dhuhr': true,
     'asr': true,
     'maghrib': true,
@@ -30,6 +34,8 @@ class SettingsProvider with ChangeNotifier {
   // Full azan vs short tone for each prayer
   Map<String, bool> _fullAzan = {
     'fajr': true,
+    'sunrise': false,
+    'dhuha': false,
     'dhuhr': false,
     'asr': false,
     'maghrib': true,
@@ -63,6 +69,8 @@ class SettingsProvider with ChangeNotifier {
   // Prayer names for display
   final Map<String, String> prayerDisplayNames = {
     'fajr': 'Fajr',
+    'sunrise': 'Sunrise',
+    'dhuha': 'Dhuha',
     'dhuhr': 'Dhuhr',
     'asr': 'Asr',
     'maghrib': 'Maghrib',
@@ -143,6 +151,16 @@ class SettingsProvider with ChangeNotifier {
     _fullAzan[prayer] = !(_fullAzan[prayer] ?? true);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('full_azan_$prayer', _fullAzan[prayer]!);
+    await NotificationService.updateNotificationSettings();
+    notifyListeners();
+  }
+
+  void setAzanSound(String prayer, bool azanEnabled, bool fullAzan) async {
+    _azanEnabled[prayer] = azanEnabled;
+    _fullAzan[prayer] = fullAzan;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('azan_enabled_$prayer', azanEnabled);
+    await prefs.setBool('full_azan_$prayer', fullAzan);
     await NotificationService.updateNotificationSettings();
     notifyListeners();
   }

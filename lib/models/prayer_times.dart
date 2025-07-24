@@ -79,8 +79,31 @@ class PrayerTimes {
     };
   }
 
+  String? get dhuha {
+    // If API provides Dhuha, use it. Otherwise, calculate as 25 minutes after sunrise.
+    if (allTimes.any((pt) => pt.name.toLowerCase() == 'dhuha' && pt.time != null)) {
+      return allTimes.firstWhere((pt) => pt.name.toLowerCase() == 'dhuha').time;
+    }
+    if (sunrise != null) {
+      final sunriseParts = sunrise!.split(':');
+      if (sunriseParts.length == 2) {
+        int hour = int.tryParse(sunriseParts[0]) ?? 0;
+        int minute = int.tryParse(sunriseParts[1]) ?? 0;
+        minute += 25;
+        if (minute >= 60) {
+          hour += 1;
+          minute -= 60;
+        }
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      }
+    }
+    return null;
+  }
+
   List<PrayerTime> get mainPrayers => [
     PrayerTime('Fajr', fajr, 'Dawn Prayer'),
+    PrayerTime('Sunrise', sunrise, 'Sunrise'),
+    PrayerTime('Dhuha', dhuha, 'Forenoon (Duha)'),
     PrayerTime('Dhuhr', dhuhr, 'Noon Prayer'),
     PrayerTime('Asr', asr, 'Afternoon Prayer'),
     PrayerTime('Maghrib', maghrib, 'Sunset Prayer'),
