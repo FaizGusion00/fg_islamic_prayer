@@ -9,6 +9,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:io';
+import 'package:flutter/material.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -40,13 +41,9 @@ class NotificationService {
       final granted = await androidPlugin.requestNotificationsPermission();
       print('Notification permission granted: $granted');
       
-      // Request exact alarm permission
-      final exactAlarmGranted = await androidPlugin.requestExactAlarmsPermission();
-      print('Exact alarm permission granted: $exactAlarmGranted');
-      
-      // Check if permissions are granted
-      final areNotificationsEnabled = await androidPlugin.areNotificationsEnabled();
-      print('Notifications enabled: $areNotificationsEnabled');
+      // For exact alarm permissions, we'll rely on the AndroidManifest.xml declarations
+      // The app already has SCHEDULE_EXACT_ALARM and USE_EXACT_ALARM permissions declared
+      print('Notification permissions requested');
     }
   }
 
@@ -55,43 +52,65 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     // Only create notification channels on Android 8.0+ (API 26+)
     if (androidPlugin != null && Platform.isAndroid && (await _getAndroidSdkInt()) >= 26) {
-      // High priority channel for prayer times with custom sound
-      const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        'prayer_notifications',
-        'Prayer Time Notifications',
-        description: 'Notifications for Islamic prayer times',
-        importance: Importance.max,
-        playSound: true,
-        sound: RawResourceAndroidNotificationSound('azan_short'),
-        enableVibration: true,
-        enableLights: true,
-        showBadge: true,
-        ledColor: Color.fromARGB(255, 0, 255, 0),
-      );
-      // Channel for reminders
-      const reminderChannel = AndroidNotificationChannel(
-        'reminders',
-        'Prayer Reminders',
-        description: 'Reminder notifications',
-        importance: Importance.high,
-        playSound: true,
-        enableVibration: true,
-        enableLights: true,
-      );
-      // Test channel
-      const testChannel = AndroidNotificationChannel(
-        'test_notifications',
-        'Test Notifications',
-        description: 'Test notifications for debugging',
-        importance: Importance.max,
-        playSound: true,
-        sound: RawResourceAndroidNotificationSound('azan_short'),
-        enableVibration: true,
-      );
-      await androidPlugin.createNotificationChannel(channel);
-      await androidPlugin.createNotificationChannel(reminderChannel);
-      await androidPlugin.createNotificationChannel(testChannel);
-      print('Notification channels created successfully');
+      try {
+        // High priority channel for prayer times with custom sound
+        const AndroidNotificationChannel channel = AndroidNotificationChannel(
+          'prayer_notifications',
+          'Prayer Time Notifications',
+          description: 'Notifications for Islamic prayer times with Azan',
+          importance: Importance.max,
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound('azan_short'),
+          enableVibration: true,
+          enableLights: true,
+          showBadge: true,
+          ledColor: Color.fromARGB(255, 0, 255, 0),
+        );
+        
+        // Channel for prayer times without sound (fallback)
+        const AndroidNotificationChannel silentChannel = AndroidNotificationChannel(
+          'prayer_notifications_silent',
+          'Prayer Time Notifications (Silent)',
+          description: 'Silent prayer time notifications with vibration only',
+          importance: Importance.max,
+          playSound: false,
+          enableVibration: true,
+          enableLights: true,
+          showBadge: true,
+          ledColor: Color.fromARGB(255, 0, 255, 0),
+        );
+        
+        // Channel for reminders
+        const reminderChannel = AndroidNotificationChannel(
+          'reminders',
+          'Prayer Reminders',
+          description: 'Reminder notifications',
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
+          enableLights: true,
+        );
+        
+        // Create a test notification channel
+        const testChannel = AndroidNotificationChannel(
+          'test_notifications',
+          'Test Notifications',
+          description: 'Test notification for prayer times',
+          importance: Importance.max,
+          sound: RawResourceAndroidNotificationSound('azan_short'),
+          enableVibration: true,
+          enableLights: true,
+          showBadge: true,
+        );
+        
+        await androidPlugin.createNotificationChannel(channel);
+        await androidPlugin.createNotificationChannel(silentChannel);
+        await androidPlugin.createNotificationChannel(reminderChannel);
+        await androidPlugin.createNotificationChannel(testChannel);
+        print('Notification channels created successfully');
+      } catch (e) {
+        print('Error creating notification channels: $e');
+      }
     }
   }
 
@@ -118,137 +137,210 @@ class NotificationService {
     String prayerName,
     DateTime scheduledTime,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final isAzanEnabled = prefs.getBool('azan_enabled_${prayerName.toLowerCase()}') ?? true;
-    final isFullAzan = prefs.getBool('full_azan_${prayerName.toLowerCase()}') ?? true;
-    final isVibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
-
-    int sdkInt = 30;
-    if (Platform.isAndroid) {
-      sdkInt = await _getAndroidSdkInt();
-    }
-
-    AndroidNotificationDetails androidDetails;
     try {
-      if (Platform.isAndroid && sdkInt < 26) {
-        // For old Android, do not set channel or custom sound
+      final prefs = await SharedPreferences.getInstance();
+      final isAzanEnabled = prefs.getBool('azan_enabled_${prayerName.toLowerCase()}') ?? true;
+      final isFullAzan = prefs.getBool('full_azan_${prayerName.toLowerCase()}') ?? true;
+      final isVibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
+
+      int sdkInt = 30;
+      if (Platform.isAndroid) {
+        sdkInt = await _getAndroidSdkInt();
+      }
+
+      // For exact alarm scheduling, we'll rely on AndroidManifest.xml permissions
+      // and handle any scheduling errors gracefully
+      bool canScheduleExact = true;
+
+      AndroidNotificationDetails androidDetails;
+      String channelId = 'prayer_notifications';
+      
+      try {
+        if (Platform.isAndroid && sdkInt < 26) {
+          // For old Android, do not set channel or custom sound
+          androidDetails = AndroidNotificationDetails(
+            channelId,
+            'Prayer Time Notifications',
+            channelDescription: 'Notifications for Islamic prayer times',
+            importance: Importance.max,
+            priority: Priority.high,
+            enableVibration: isVibrationEnabled,
+            playSound: isAzanEnabled,
+            sound: null, // Use default sound for old Android
+            icon: '@mipmap/ic_launcher',
+            largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+            styleInformation: BigTextStyleInformation(
+              _getPrayerMessage(prayerName),
+              contentTitle: 'Time for $prayerName Prayer',
+              summaryText: 'FGIslamicPrayer',
+            ),
+            category: AndroidNotificationCategory.reminder,
+            visibility: NotificationVisibility.public,
+            fullScreenIntent: true,
+            ongoing: false,
+            autoCancel: false,
+            showWhen: true,
+            timeoutAfter: 60000,
+          );
+        } else {
+          // For Android 8.0+ try with sound first, fallback to silent if needed
+          try {
+            androidDetails = AndroidNotificationDetails(
+              channelId,
+              'Prayer Time Notifications',
+              channelDescription: 'Notifications for Islamic prayer times',
+              importance: Importance.max,
+              priority: Priority.high,
+              enableVibration: isVibrationEnabled,
+              playSound: isAzanEnabled,
+              sound: isAzanEnabled 
+                  ? (isFullAzan 
+                      ? const RawResourceAndroidNotificationSound('azan_full')
+                      : const RawResourceAndroidNotificationSound('azan_short'))
+                  : null,
+              icon: '@mipmap/ic_launcher',
+              largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+              styleInformation: BigTextStyleInformation(
+                _getPrayerMessage(prayerName),
+                contentTitle: 'Time for $prayerName Prayer',
+                summaryText: 'FGIslamicPrayer',
+              ),
+              category: AndroidNotificationCategory.reminder,
+              visibility: NotificationVisibility.public,
+              fullScreenIntent: true,
+              ongoing: false,
+              autoCancel: false,
+              showWhen: true,
+              timeoutAfter: 60000,
+            );
+          } catch (soundError) {
+            print('Error with sound notification, falling back to silent: $soundError');
+            // Fallback to silent channel
+            channelId = 'prayer_notifications_silent';
+            androidDetails = AndroidNotificationDetails(
+              channelId,
+              'Prayer Time Notifications (Silent)',
+              channelDescription: 'Silent prayer time notifications with vibration only',
+              importance: Importance.max,
+              priority: Priority.high,
+              enableVibration: isVibrationEnabled,
+              playSound: false,
+              icon: '@mipmap/ic_launcher',
+              largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+              styleInformation: BigTextStyleInformation(
+                _getPrayerMessage(prayerName),
+                contentTitle: 'Time for $prayerName Prayer',
+                summaryText: 'FGIslamicPrayer',
+              ),
+              category: AndroidNotificationCategory.reminder,
+              visibility: NotificationVisibility.public,
+              fullScreenIntent: true,
+              ongoing: false,
+              autoCancel: false,
+              showWhen: true,
+              timeoutAfter: 60000,
+            );
+          }
+        }
+      } catch (e) {
+        print('Error creating notification details: $e');
+        // Ultimate fallback
         androidDetails = AndroidNotificationDetails(
-          'prayer_notifications',
+          'prayer_notifications_silent',
           'Prayer Time Notifications',
           channelDescription: 'Notifications for Islamic prayer times',
           importance: Importance.max,
           priority: Priority.high,
           enableVibration: isVibrationEnabled,
-          playSound: isAzanEnabled,
-          // Use default sound for old Android
-          sound: null,
+          playSound: false,
           icon: '@mipmap/ic_launcher',
-          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-          styleInformation: BigTextStyleInformation(
-            _getPrayerMessage(prayerName),
-            contentTitle: 'Time for $prayerName Prayer',
-            summaryText: 'FGIslamicPrayer',
-          ),
-          category: AndroidNotificationCategory.reminder,
-          visibility: NotificationVisibility.public,
-          fullScreenIntent: true,
-          ongoing: false,
-          autoCancel: false,
-          showWhen: true,
-          when: null,
-          usesChronometer: false,
-          timeoutAfter: 60000,
-        );
-      } else {
-        // For Android 8.0+ and all other platforms, use normal logic
-        androidDetails = AndroidNotificationDetails(
-          'prayer_notifications',
-          'Prayer Time Notifications',
-          channelDescription: 'Notifications for Islamic prayer times',
-          importance: Importance.max,
-          priority: Priority.high,
-          enableVibration: isVibrationEnabled,
-          playSound: isAzanEnabled,
-          sound: isAzanEnabled 
-              ? (isFullAzan 
-                  ? const RawResourceAndroidNotificationSound('azan_full')
-                  : const RawResourceAndroidNotificationSound('azan_short'))
-              : null,
-          icon: '@mipmap/ic_launcher',
-          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-          styleInformation: BigTextStyleInformation(
-            _getPrayerMessage(prayerName),
-            contentTitle: 'Time for $prayerName Prayer',
-            summaryText: 'FGIslamicPrayer',
-          ),
-          category: AndroidNotificationCategory.reminder,
-          visibility: NotificationVisibility.public,
-          fullScreenIntent: true,
-          ongoing: false,
-          autoCancel: false,
-          showWhen: true,
-          when: null,
-          usesChronometer: false,
-          timeoutAfter: 60000, // Auto dismiss after 1 minute
         );
       }
-    } catch (e) {
-      // Fallback: show notification without sound, play asset audio
-      androidDetails = AndroidNotificationDetails(
-        'prayer_notifications',
-        'Prayer Time Notifications',
-        channelDescription: 'Notifications for Islamic prayer times',
-        importance: Importance.max,
-        priority: Priority.high,
-        enableVibration: isVibrationEnabled,
-        playSound: false,
-        icon: '@mipmap/ic_launcher',
-        largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-        styleInformation: BigTextStyleInformation(
+
+      final notificationDetails = NotificationDetails(android: androidDetails);
+      final notificationId = _getPrayerNotificationId(prayerName);
+      final tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+
+      // Schedule the notification
+      if (canScheduleExact) {
+        await _notifications.zonedSchedule(
+          notificationId,
+          'Time for $prayerName Prayer',
           _getPrayerMessage(prayerName),
-          contentTitle: 'Time for $prayerName Prayer',
-          summaryText: 'FGIslamicPrayer',
-        ),
-        category: AndroidNotificationCategory.reminder,
-        visibility: NotificationVisibility.public,
-        fullScreenIntent: true,
-        ongoing: false,
-        autoCancel: false,
-        showWhen: true,
-        when: null,
-        usesChronometer: false,
-        timeoutAfter: 60000,
-      );
-      final azanFile = isFullAzan ? 'audio/azan_full.mp3' : 'audio/azan_short.mp3';
-      try {
-        await _audioPlayer.stop();
-        await _audioPlayer.play(AssetSource(azanFile));
-      } catch (_) {}
+          tzScheduledTime,
+          notificationDetails,
+          payload: prayerName.toLowerCase(),
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+        print('Prayer notification scheduled for $prayerName at $scheduledTime');
+      } else {
+        print('Cannot schedule exact alarms, using approximate scheduling');
+        // Fallback to approximate scheduling
+        await _notifications.zonedSchedule(
+          notificationId,
+          'Time for $prayerName Prayer',
+          _getPrayerMessage(prayerName),
+          tzScheduledTime,
+          notificationDetails,
+          payload: prayerName.toLowerCase(),
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+      
+      // If using silent notification, schedule audio playback separately
+      if (channelId == 'prayer_notifications_silent' && isAzanEnabled) {
+        _scheduleAudioPlayback(prayerName, scheduledTime, isFullAzan);
+      }
+      
+    } catch (e) {
+      print('Error scheduling prayer notification: $e');
+      print('Stack trace: ${StackTrace.current}');
     }
-
-    final notificationDetails = NotificationDetails(android: androidDetails);
-
-    // Schedule the notification
-    await _notifications.zonedSchedule(
-      _getPrayerNotificationId(prayerName),
-      'Time for $prayerName Prayer',
-      _getPrayerMessage(prayerName),
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      notificationDetails,
-      payload: prayerName.toLowerCase(),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+  }
+  
+  static void _scheduleAudioPlayback(String prayerName, DateTime scheduledTime, bool isFullAzan) {
+    // Schedule a timer to play audio at the specified time
+    final now = DateTime.now();
+    final difference = scheduledTime.difference(now);
+    
+    if (difference.isNegative) {
+      print('Scheduled time is in the past, playing audio immediately');
+      _playAzan(prayerName.toLowerCase());
+    } else {
+      Timer(difference, () {
+        _playAzan(prayerName.toLowerCase());
+      });
+      print('Audio playback scheduled for $prayerName in ${difference.inMinutes} minutes');
+    }
   }
 
   static Future<void> _playAzan(String prayerName) async {
     final prefs = await SharedPreferences.getInstance();
     final isAzanEnabled = prefs.getBool('azan_enabled_${prayerName.toLowerCase()}') ?? true;
     final isFullAzan = prefs.getBool('full_azan_${prayerName.toLowerCase()}') ?? true;
+    final isVibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
     
     print('_playAzan called for: $prayerName');
-    print('Azan enabled: $isAzanEnabled, Full azan: $isFullAzan');
+    print('Azan enabled: $isAzanEnabled, Full azan: $isFullAzan, Vibration: $isVibrationEnabled');
+    
+    // Always trigger vibration first if enabled
+    if (isVibrationEnabled) {
+      try {
+        HapticFeedback.heavyImpact();
+        print('Vibration triggered successfully');
+        
+        // Additional vibration pattern for prayer time
+        await Future.delayed(const Duration(milliseconds: 200));
+        HapticFeedback.mediumImpact();
+        await Future.delayed(const Duration(milliseconds: 200));
+        HapticFeedback.heavyImpact();
+      } catch (e) {
+        print('Error triggering vibration: $e');
+      }
+    }
     
     if (isAzanEnabled) {
       try {
@@ -258,26 +350,30 @@ class NotificationService {
         // Stop any currently playing audio first
         await _audioPlayer.stop();
         
+        // Set audio player settings for better compatibility
+        await _audioPlayer.setReleaseMode(ReleaseMode.stop);
+        await _audioPlayer.setVolume(1.0);
+        
         // Play the azan
         await _audioPlayer.play(AssetSource(azanFile));
         print('Azan playback started successfully for: $azanFile');
         
-        // Vibrate if enabled
-        final isVibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
-        if (isVibrationEnabled) {
-          HapticFeedback.heavyImpact();
-          print('Vibration triggered');
-        }
       } catch (e) {
         print('Error playing azan: $e');
         print('Stack trace: ${StackTrace.current}');
         
-        // Try to fallback to system notification sound if asset fails
+        // Fallback: try to play a simple beep sound
         try {
-          print('Attempting fallback vibration...');
+          print('Attempting fallback beep sound...');
+          // Try system notification sound
           HapticFeedback.heavyImpact();
+          await Future.delayed(const Duration(milliseconds: 100));
+          HapticFeedback.heavyImpact();
+          await Future.delayed(const Duration(milliseconds: 100));
+          HapticFeedback.heavyImpact();
+          print('Fallback beep pattern completed');
         } catch (fallbackError) {
-          print('Fallback vibration also failed: $fallbackError');
+          print('Fallback beep also failed: $fallbackError');
         }
       }
     } else {
@@ -332,38 +428,53 @@ class NotificationService {
 
 
   static Future<void> showTestNotification() async {
-    const androidDetails = AndroidNotificationDetails(
-      'test_notifications',
-      'Test Notifications',
-      channelDescription: 'Test notification for prayer times',
-      importance: Importance.max,
-      priority: Priority.max,
-      enableVibration: true,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('azan_short'),
-      icon: '@mipmap/ic_launcher',
-      largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-      styleInformation: BigTextStyleInformation(
-        'This is a test prayer notification from FGIslamicPrayer. If you can see this and hear the sound, notifications are working correctly!',
-        contentTitle: 'Test Notification',
-        summaryText: 'FGIslamicPrayer Test',
-      ),
-      category: AndroidNotificationCategory.reminder,
-      visibility: NotificationVisibility.public,
-      fullScreenIntent: true,
-      autoCancel: true,
-    );
+    try {
+      // Cancel any existing test notification first
+      await _notifications.cancel(999);
+      
+      // Wait a moment before showing new notification
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      final androidDetails = AndroidNotificationDetails(
+         'test_notifications',
+         'Test Notifications',
+         channelDescription: 'Test notification for prayer times',
+         importance: Importance.max,
+         priority: Priority.max,
+         enableVibration: true,
+         playSound: true,
+         sound: RawResourceAndroidNotificationSound('azan_short'),
+         icon: '@mipmap/ic_launcher',
+         largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+         styleInformation: BigTextStyleInformation(
+           'This is a test prayer notification from FGIslamicPrayer. If you can see this and hear the sound, notifications are working correctly!',
+           contentTitle: 'Test Notification',
+           summaryText: 'FGIslamicPrayer Test',
+         ),
+         category: AndroidNotificationCategory.reminder,
+         visibility: NotificationVisibility.public,
+         fullScreenIntent: false,
+         autoCancel: true,
+         ongoing: false,
+         showWhen: true,
+         when: DateTime.now().millisecondsSinceEpoch,
+       );
 
-    const notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
+      final notificationDetails = NotificationDetails(
+         android: androidDetails,
+       );
 
-    await _notifications.show(
-      999,
-      'Test Notification',
-      'This is a test prayer notification from FGIslamicPrayer',
-      notificationDetails,
-    );
+      await _notifications.show(
+        999,
+        'Test Notification',
+        'This is a test prayer notification from FGIslamicPrayer',
+        notificationDetails,
+      );
+      
+      print('Test notification sent successfully');
+    } catch (e) {
+      print('Error showing test notification: $e');
+    }
     
     print('Test notification sent');
   }

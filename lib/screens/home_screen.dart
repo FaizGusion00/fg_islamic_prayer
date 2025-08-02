@@ -324,11 +324,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              _buildInfoRow('Calculation Method', 
-                  prayerProvider.calculationMethods[prayerProvider.calculationMethod] ?? 'Unknown'),
-              _buildInfoRow('Asr Method', 
-
-                  prayerProvider.asrMethods[prayerProvider.asrMethod] ?? 'Unknown'),
+              _buildInfoRow('API Data', 
+                  prayerProvider.apiSource == 'waktusolat' ? 'Waktu Solat (Malaysia - JAKIM)' : 'Aladhan (Global)'),
               if (prayerProvider.currentPosition != null) ...[
                 if (prayerProvider.locationName != null)
                   _buildInfoRow('Location', prayerProvider.locationName!),

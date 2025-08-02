@@ -16,6 +16,8 @@ class PrayerProvider with ChangeNotifier {
   String? _locationName;
   String _calculationMethod = '2'; // Islamic Society of North America
   String _asrMethod = '0'; // Shafi
+  String _apiSource = 'waktusolat'; // Default to Waktu Solat API for Malaysia
+  String? _malaysianZone; // Malaysian prayer time zone (e.g., SGR01, WLY01)
   
   // Getters
   PrayerTimes? get prayerTimes => _prayerTimes;
@@ -25,9 +27,11 @@ class PrayerProvider with ChangeNotifier {
   String? get locationName => _locationName;
   String get calculationMethod => _calculationMethod;
   String get asrMethod => _asrMethod;
+  String get apiSource => _apiSource;
+  String? get malaysianZone => _malaysianZone ?? 'Auto-detect';
 
   // Prayer time names
-  final List<String> prayerNames = ['Fajr', 'Sunrise', 'Dhuha', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Imsak'];
+  final List<String> prayerNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Imsak'];
   
   // Calculation methods
   final Map<String, String> calculationMethods = {
@@ -64,6 +68,8 @@ class PrayerProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _calculationMethod = prefs.getString('calculation_method') ?? '2';
     _asrMethod = prefs.getString('asr_method') ?? '0';
+    _apiSource = prefs.getString('api_source') ?? 'waktusolat';
+    _malaysianZone = prefs.getString('malaysian_zone');
     notifyListeners();
   }
 
@@ -214,6 +220,205 @@ class PrayerProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Method to detect Malaysian zone based on coordinates
+  String? _detectMalaysianZone(double latitude, double longitude) {
+    // Simplified zone detection for major Malaysian areas
+    // In a real app, you'd want a more comprehensive mapping
+    
+    // Selangor zones
+    if (latitude >= 2.8 && latitude <= 3.8 && longitude >= 101.0 && longitude <= 102.0) {
+      return 'SGR01'; // Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Rawang
+    }
+    if (latitude >= 3.0 && latitude <= 3.5 && longitude >= 100.8 && longitude <= 101.5) {
+      return 'SGR02'; // Kuala Langat, Kuala Selangor, Klang
+    }
+    
+    // Kuala Lumpur
+    if (latitude >= 3.0 && latitude <= 3.3 && longitude >= 101.5 && longitude <= 101.8) {
+      return 'WLY01'; // Kuala Lumpur
+    }
+    
+    // Putrajaya
+    if (latitude >= 2.8 && latitude <= 3.0 && longitude >= 101.6 && longitude <= 101.8) {
+      return 'WLY02'; // Putrajaya
+    }
+    
+    // Johor zones
+    if (latitude >= 1.2 && latitude <= 2.8 && longitude >= 102.5 && longitude <= 104.5) {
+      if (latitude >= 1.4 && latitude <= 1.6 && longitude >= 103.6 && longitude <= 103.9) {
+        return 'JHR01'; // Johor Bahru, Kota Tinggi, Mersing
+      }
+      return 'JHR02'; // Other Johor areas
+    }
+    
+    // Penang
+    if (latitude >= 5.0 && latitude <= 5.7 && longitude >= 100.0 && longitude <= 100.6) {
+      return 'PNG01'; // Penang
+    }
+    
+    // Default to Selangor if in Malaysia but zone not detected
+    if (latitude >= 1.0 && latitude <= 7.0 && longitude >= 99.0 && longitude <= 120.0) {
+      return 'SGR01'; // Default Malaysian zone
+    }
+    
+    return null; // Not in Malaysia
+  }
+
+  // Fetch prayer times from Waktu Solat API
+  Future<PrayerTimes?> _fetchFromWaktuSolat(double latitude, double longitude) async {
+    try {
+      String? zone = _malaysianZone ?? _detectMalaysianZone(latitude, longitude);
+      
+      if (zone == null) {
+        print('Location not in Malaysia, falling back to Aladhan API');
+        return _fetchFromAladhan(latitude, longitude);
+      }
+      
+      // Save detected zone for future use
+      if (_malaysianZone != zone) {
+        _malaysianZone = zone;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('malaysian_zone', zone);
+      }
+      
+      // Try v2 endpoint first, then fallback to v1
+      final urls = [
+        'https://api.waktusolat.app/v2/solat/$zone',
+        'https://api.waktusolat.app/solat/$zone',
+      ];
+      
+      for (final url in urls) {
+        print('Fetching prayer times from Waktu Solat API: $url');
+        
+        try {
+          final response = await http.get(Uri.parse(url));
+          
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            print('Waktu Solat API response: ${response.body}');
+            
+            // Handle different response formats
+            Map<String, dynamic>? prayerData;
+            
+            if (data is Map<String, dynamic>) {
+              // Check for v2 format with prayerTime array
+              if (data.containsKey('prayerTime') && data['prayerTime'] is List) {
+                final prayerList = data['prayerTime'] as List;
+                if (prayerList.isNotEmpty) {
+                  prayerData = prayerList.first as Map<String, dynamic>;
+                }
+              }
+              // Check for direct prayer data format
+              else if (data.containsKey('imsak') || data.containsKey('subuh')) {
+                prayerData = data;
+              }
+              // Check for nested data format
+              else if (data.containsKey('data')) {
+                final nestedData = data['data'];
+                if (nestedData is Map<String, dynamic>) {
+                  prayerData = nestedData;
+                } else if (nestedData is List && nestedData.isNotEmpty) {
+                  prayerData = nestedData.first as Map<String, dynamic>;
+                }
+              }
+            }
+            
+            if (prayerData != null) {
+              // Convert Waktu Solat format to our PrayerTimes format
+              final timingsMap = {
+                'Fajr': prayerData['subuh'] ?? prayerData['fajr'],
+                'Sunrise': prayerData['syuruk'] ?? prayerData['sunrise'],
+                'Dhuhr': prayerData['zohor'] ?? prayerData['dhuhr'],
+                'Asr': prayerData['asar'] ?? prayerData['asr'],
+                'Maghrib': prayerData['maghrib'],
+                'Isha': prayerData['isyak'] ?? prayerData['isha'],
+                'Imsak': prayerData['imsak'],
+              };
+              
+              // Create date info
+              final dateInfo = {
+                'readable': prayerData['date'] ?? DateFormat('dd MMM yyyy').format(DateTime.now()),
+                'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+              };
+              
+              // Create location info
+              final locationInfo = {
+                'latitude': latitude,
+                'longitude': longitude,
+                'timezone': 'Asia/Kuala_Lumpur',
+                'method': {
+                  'id': 16,
+                  'name': 'Department of Islamic Development Malaysia (JAKIM)',
+                },
+              };
+              
+              final prayerTimesJson = {
+                'timings': timingsMap,
+                'date': dateInfo,
+                'meta': locationInfo,
+              };
+              
+              return PrayerTimes.fromJson(prayerTimesJson);
+            }
+          }
+        } catch (e) {
+          print('Error with URL $url: $e');
+          continue; // Try next URL
+        }
+      }
+      
+      print('All Waktu Solat API endpoints failed, falling back to Aladhan');
+      return _fetchFromAladhan(latitude, longitude);
+      
+    } catch (e) {
+      print('Error fetching from Waktu Solat API: $e');
+      return _fetchFromAladhan(latitude, longitude);
+    }
+  }
+
+  // Original Aladhan API method (renamed)
+  Future<PrayerTimes?> _fetchFromAladhan(double latitude, double longitude) async {
+    try {
+      final today = DateTime.now();
+      final dateString = DateFormat('dd-MM-yyyy').format(today);
+      
+      final url = Uri.parse(
+        'https://api.aladhan.com/v1/timings/$dateString'
+        '?latitude=$latitude'
+        '&longitude=$longitude'
+        '&method=$_calculationMethod'
+        '&school=$_asrMethod'
+      );
+
+      print('Fetching prayer times from Aladhan API: $url');
+
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Request timed out. Please check your internet connection.');
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        
+        // Validate response structure
+        if (responseData['code'] != 200 || responseData['data'] == null) {
+          throw Exception('Invalid response from prayer times API');
+        }
+        
+        return PrayerTimes.fromJson(responseData['data']);
+      } else if (response.statusCode == 429) {
+        throw Exception('Too many requests. Please try again in a few minutes.');
+      } else {
+        throw Exception('Failed to load prayer times (Status: ${response.statusCode})');
+      }
+    } catch (e) {
+      print('Error fetching prayer times from Aladhan: $e');
+      return null;
+    }
+  }
+
   Future<void> fetchPrayerTimes({int retryCount = 0}) async {
     if (_currentPosition == null) {
       _error = 'Location not available. Please enable location services.';
@@ -226,37 +431,22 @@ class PrayerProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      final today = DateTime.now();
-      final dateString = DateFormat('dd-MM-yyyy').format(today);
+      PrayerTimes? prayerTimes;
       
-      final url = Uri.parse(
-        'https://api.aladhan.com/v1/timings/$dateString'
-        '?latitude=${_currentPosition!.latitude}'
-        '&longitude=${_currentPosition!.longitude}'
-        '&method=$_calculationMethod'
-        '&school=$_asrMethod'
-      );
-
-      print('Fetching prayer times from: $url');
-
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw Exception('Request timed out. Please check your internet connection.');
-        },
-      );
+      if (_apiSource == 'waktusolat') {
+        prayerTimes = await _fetchFromWaktuSolat(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+        );
+      } else {
+        prayerTimes = await _fetchFromAladhan(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+        );
+      }
       
-      print('API Response status: ${response.statusCode}');
-      
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        
-        // Validate response structure
-        if (responseData['code'] != 200 || responseData['data'] == null) {
-          throw Exception('Invalid response from prayer times API');
-        }
-        
-        _prayerTimes = PrayerTimes.fromJson(responseData['data']);
+      if (prayerTimes != null) {
+        _prayerTimes = prayerTimes;
         
         // Validate that we got valid prayer times
         if (_prayerTimes!.fajr == null || _prayerTimes!.dhuhr == null) {
@@ -264,16 +454,16 @@ class PrayerProvider with ChangeNotifier {
         }
         
         // Cache the data
-        await _cachePrayerTimes(responseData['data'], dateString);
+        final today = DateTime.now();
+        final dateString = DateFormat('dd-MM-yyyy').format(today);
+        await _cachePrayerTimes(prayerTimes.toJson(), dateString);
         
         // Schedule notifications
         await _scheduleNotifications();
         
         print('Prayer times fetched successfully');
-      } else if (response.statusCode == 429) {
-        throw Exception('Too many requests. Please try again in a few minutes.');
       } else {
-        throw Exception('Failed to load prayer times (Status: ${response.statusCode})');
+        throw Exception('Failed to fetch prayer times from any source');
       }
     } catch (e) {
       print('Error fetching prayer times: $e');
@@ -325,7 +515,6 @@ class PrayerProvider with ChangeNotifier {
     final prayers = {
       'Fajr': _prayerTimes!.fajr,
       'Sunrise': _prayerTimes!.sunrise,
-      'Dhuha': _prayerTimes!.dhuha,
       'Dhuhr': _prayerTimes!.dhuhr,
       'Asr': _prayerTimes!.asr,
       'Maghrib': _prayerTimes!.maghrib,
@@ -373,6 +562,30 @@ class PrayerProvider with ChangeNotifier {
     await prefs.setString('asr_method', method);
     await fetchPrayerTimes();
     notifyListeners();
+  }
+
+  Future<void> updateApiSource(String source) async {
+    _apiSource = source;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('api_source', source);
+    notifyListeners();
+    await fetchPrayerTimes();
+  }
+
+  Future<void> updateMalaysianZone(String? zone) async {
+    // Convert 'Auto-detect' to null for internal logic
+    final actualZone = zone == 'Auto-detect' ? null : zone;
+    _malaysianZone = actualZone;
+    final prefs = await SharedPreferences.getInstance();
+    if (actualZone != null) {
+      await prefs.setString('malaysian_zone', actualZone);
+    } else {
+      await prefs.remove('malaysian_zone');
+    }
+    notifyListeners();
+    if (_apiSource == 'waktusolat') {
+      await fetchPrayerTimes();
+    }
   }
 
   String? getNextPrayer() {

@@ -103,7 +103,6 @@ class PrayerTimes {
   List<PrayerTime> get mainPrayers => [
     PrayerTime('Fajr', fajr, 'Dawn Prayer'),
     PrayerTime('Sunrise', sunrise, 'Sunrise'),
-    PrayerTime('Dhuha', dhuha, 'Forenoon (Duha)'),
     PrayerTime('Dhuhr', dhuhr, 'Noon Prayer'),
     PrayerTime('Asr', asr, 'Afternoon Prayer'),
     PrayerTime('Maghrib', maghrib, 'Sunset Prayer'),

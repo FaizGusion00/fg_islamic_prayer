@@ -71,41 +71,127 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Icons.calculate,
                   [
                     _buildDropdownTile(
-                      'Calculation Method',
-                      'Method for calculating prayer times',
-                      Icons.public,
-                      settingsProvider.calculationMethod.toString(),
-                      prayerProvider.calculationMethods.entries.map((e) => 
-                        DropdownMenuItem(
-                          value: e.key.toString(),
-                          child: Text(e.value),
-                        )
-                      ).toList(),
+                      'Prayer Time API',
+                      'Source for prayer time data',
+                      Icons.api,
+                      prayerProvider.apiSource,
+                      [
+                        const DropdownMenuItem(
+                          value: 'waktusolat',
+                          child: Text('Waktu Solat (Malaysia - JAKIM)'),
+                        ),
+                        const DropdownMenuItem(
+                          value: 'aladhan',
+                          child: Text('Aladhan (Global)'),
+                        ),
+                      ],
                       (value) {
                         if (value != null) {
-                          settingsProvider.setCalculationMethod(value);
-                          prayerProvider.updateCalculationMethod(value);
+                          prayerProvider.updateApiSource(value);
                         }
                       },
                     ),
-                    _buildDropdownTile(
-                      'Asr Juristic Method',
-                      'Method for calculating Asr prayer time',
-                      Icons.wb_sunny,
-                      settingsProvider.asrMethod.toString(),
-                      prayerProvider.asrMethods.entries.map((e) => 
-                        DropdownMenuItem(
-                          value: e.key.toString(),
-                          child: Text(e.value),
-                        )
-                      ).toList(),
-                      (value) {
-                        if (value != null) {
-                          settingsProvider.setAsrMethod(value);
-                          prayerProvider.updateAsrMethod(value);
-                        }
-                      },
-                    ),
+                    if (prayerProvider.apiSource == 'waktusolat') ...[
+                      _buildDropdownTile(
+                        'Malaysian Zone',
+                        'Select your Malaysian prayer time zone',
+                        Icons.location_on,
+                        prayerProvider.malaysianZone ?? 'Auto-detect',
+                        [
+                          const DropdownMenuItem(
+                            value: 'Auto-detect',
+                            child: Text('Auto-detect'),
+                          ),
+                          // Selangor zones
+                          const DropdownMenuItem(
+                            value: 'SGR01',
+                            child: Text('SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Rawang'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'SGR02',
+                            child: Text('SGR02 - Kuala Langat, Kuala Selangor, Klang'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'SGR03',
+                            child: Text('SGR03 - Sabak Bernam'),
+                          ),
+                          // Kuala Lumpur & Putrajaya
+                          const DropdownMenuItem(
+                            value: 'WLY01',
+                            child: Text('WLY01 - Kuala Lumpur'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'WLY02',
+                            child: Text('WLY02 - Putrajaya'),
+                          ),
+                          // Johor zones
+                          const DropdownMenuItem(
+                            value: 'JHR01',
+                            child: Text('JHR01 - Johor Bahru, Kota Tinggi, Mersing'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'JHR02',
+                            child: Text('JHR02 - Kluang, Pontian'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'JHR03',
+                            child: Text('JHR03 - Batu Pahat'),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'JHR04',
+                            child: Text('JHR04 - Muar, Ledang, Segamat'),
+                          ),
+                          // Penang
+                          const DropdownMenuItem(
+                            value: 'PNG01',
+                            child: Text('PNG01 - Penang'),
+                          ),
+                          // Add more zones as needed
+                        ],
+                        (value) {
+                          prayerProvider.updateMalaysianZone(value);
+                        },
+                      ),
+                    ],
+                    // Only show calculation method and Asr juristic method for Aladhan API
+                    if (prayerProvider.apiSource == 'aladhan') ...[                    
+                      _buildDropdownTile(
+                        'Calculation Method',
+                        'Method for calculating prayer times',
+                        Icons.public,
+                        settingsProvider.calculationMethod.toString(),
+                        prayerProvider.calculationMethods.entries.map((e) => 
+                          DropdownMenuItem(
+                            value: e.key.toString(),
+                            child: Text(e.value),
+                          )
+                        ).toList(),
+                        (value) {
+                          if (value != null) {
+                            settingsProvider.setCalculationMethod(value);
+                            prayerProvider.updateCalculationMethod(value);
+                          }
+                        },
+                      ),
+                      _buildDropdownTile(
+                        'Asr Juristic Method',
+                        'Method for calculating Asr prayer time',
+                        Icons.wb_sunny,
+                        settingsProvider.asrMethod.toString(),
+                        prayerProvider.asrMethods.entries.map((e) => 
+                          DropdownMenuItem(
+                            value: e.key.toString(),
+                            child: Text(e.value),
+                          )
+                        ).toList(),
+                        (value) {
+                          if (value != null) {
+                            settingsProvider.setAsrMethod(value);
+                            prayerProvider.updateAsrMethod(value);
+                          }
+                        },
+                      ),
+                    ],
                   ],
                 ),
                 
@@ -115,63 +201,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSectionCard(
                   'Prayer Notifications',
                   Icons.notifications_active,
-                  prayerProvider.prayerNames.map((prayerKey) =>
-                    _buildPrayerNotificationTile(
-                      settingsProvider.prayerDisplayNames[prayerKey] ?? (prayerKey.isNotEmpty ? prayerKey[0].toUpperCase() + prayerKey.substring(1) : prayerKey),
-                      prayerKey,
-                      settingsProvider,
-                    ),
-                  ).toList(),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Test & Actions Section
-                _buildSectionCard(
-                  'Test & Actions',
-                  Icons.play_arrow,
                   [
-                    _buildActionTile(
-                      'Test Notification',
-                      'Send a test prayer notification',
-                      Icons.notification_add,
-                      () => _testNotification(),
-                    ),
-                    _buildActionTile(
-                      'Test Short Azan Audio',
-                      'Test short azan audio playback',
-                      Icons.volume_up,
-                      () => _testShortAzan(),
-                    ),
-                    _buildActionTile(
-                      'Test Full Azan Audio',
-                      'Test full azan audio playback',
-                      Icons.music_note,
-                      () => _testFullAzan(),
-                    ),
-                    _buildActionTile(
-                      'Test Short Azan Notification',
-                      'Test notification with short azan',
-                      Icons.notifications_active,
-                      () => _testShortAzanNotification(),
-                    ),
-                    _buildActionTile(
-                       'Test Full Azan Notification',
-                       'Test notification with full azan',
-                       Icons.notification_important,
-                       () => _testFullAzanNotification(),
-                     ),
-                     _buildActionTile(
-                      'Refresh Prayer Times',
-                      'Fetch latest prayer times',
-                      Icons.refresh,
-                      () => _refreshPrayerTimes(prayerProvider),
-                    ),
-                    _buildActionTile(
-                      'Reset Settings',
-                      'Reset all settings to default',
-                      Icons.restore,
-                      () => _showResetDialog(settingsProvider),
+                    ...prayerProvider.prayerNames.map((prayerKey) =>
+                      _buildPrayerNotificationTile(
+                        settingsProvider.prayerDisplayNames[prayerKey] ?? (prayerKey.isNotEmpty ? prayerKey[0].toUpperCase() + prayerKey.substring(1) : prayerKey),
+                        prayerKey,
+                        settingsProvider,
+                      ),
+                    ).toList(),
+                    // Test notification button
+                    ListTile(
+                      leading: const Icon(Icons.notifications_active, color: Colors.blue),
+                      title: const Text('Send Test Notification'),
+                      subtitle: const Text('Debug: Check if notifications work on your device'),
+                      onTap: () async {
+                        await NotificationService.showTestNotification();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Test notification sent!')),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -196,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildInfoTile(
                       'App Version',
-                      '1.0.2(2)',
+                      '1.0.5(5)',
                       Icons.info_outline,
                     ),
                     _buildInfoTile(
@@ -246,20 +296,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             ...children,
-            // Add test notification button
-            ListTile(
-              leading: const Icon(Icons.notifications_active, color: Colors.blue),
-              title: const Text('Send Test Notification'),
-              subtitle: const Text('Debug: Check if notifications work on your device'),
-              onTap: () async {
-                await NotificationService.showTestNotification();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Test notification sent!')),
-                  );
-                }
-              },
-            ),
           ],
         ),
       ),
@@ -446,54 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
   
-  Future<void> _testNotification() async {
-    try {
-      await NotificationService.showTestNotification();
-      _showSnackBar('Test notification sent!');
-    } catch (e) {
-      _showSnackBar('Error sending notification: $e');
-    }
-  }
-  
-  Future<void> _refreshPrayerTimes(PrayerProvider prayerProvider) async {
-    try {
-      _showSnackBar('Refreshing prayer times...');
-      await prayerProvider.fetchPrayerTimes();
-      _showSnackBar('Prayer times updated successfully!');
-    } catch (e) {
-      _showSnackBar('Error refreshing prayer times: $e');
-    }
-  }
-  
-  void _showResetDialog(SettingsProvider settingsProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Settings'),
-        content: const Text(
-          'Are you sure you want to reset all settings to their default values? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              settingsProvider.resetToDefaults();
-              Navigator.pop(context);
-              _showSnackBar('Settings reset to defaults');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
-    );
-  }
+
   
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -506,43 +495,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _testShortAzan() async {
-    try {
-      _showSnackBar('Testing short Azan audio...');
-      await NotificationService.testAudioPlayback(fullAzan: false);
-      _showSnackBar('Short Azan audio test completed!');
-    } catch (e) {
-      _showSnackBar('Error testing short Azan: $e');
-    }
-  }
 
-  Future<void> _testFullAzan() async {
-    try {
-      _showSnackBar('Testing full Azan audio...');
-      await NotificationService.testAudioPlayback(fullAzan: true);
-      _showSnackBar('Full Azan audio test completed!');
-    } catch (e) {
-      _showSnackBar('Error testing full Azan: $e');
-    }
-  }
-
-  Future<void> _testShortAzanNotification() async {
-    try {
-      _showSnackBar('Testing short Azan notification...');
-      await NotificationService.testImmediateNotification(fullAzan: false);
-      _showSnackBar('Short Azan notification test sent!');
-    } catch (e) {
-      _showSnackBar('Error testing short Azan notification: $e');
-    }
-  }
-
-  Future<void> _testFullAzanNotification() async {
-    try {
-      _showSnackBar('Testing full Azan notification...');
-      await NotificationService.testImmediateNotification(fullAzan: true);
-      _showSnackBar('Full Azan notification test sent!');
-    } catch (e) {
-      _showSnackBar('Error testing full Azan notification: $e');
-    }
-  }
 }

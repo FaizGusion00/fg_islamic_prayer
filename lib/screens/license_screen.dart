@@ -106,7 +106,7 @@ class LicenseScreen extends StatelessWidget {
           
           // Version
           Text(
-            'Version 1.0.2(2)',
+            'Version 1.0.5(5)',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Colors.grey[600],
             ),
@@ -170,7 +170,7 @@ class LicenseScreen extends StatelessWidget {
               'FGIslamicPrayer is a free Islamic app developed with love and sincerity. No ads. No fees. May Allah accept this as a small contribution.\n\n'
               'Owned by FGCompany Official\n'
               'Developed by Faiz Nasir (Senior Software Engineer)\n\n'
-              'Prayer times powered by: Aladhan.com API\n\n'
+              'Prayer times powered by: Waktu Solat and Aladhan.com API\n\n'
               'For inquiries: fgcompany.developer@gmail.com\n\n'
               'May this app be a continuous charity (sadaqah jariyah). Ameen.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -215,9 +215,9 @@ class LicenseScreen extends StatelessWidget {
           _buildCreditItem(
             context,
             'Prayer Times API',
-            'Aladhan.com',
+            'Waktu Solat API',
             'Accurate prayer times calculation',
-            'https://aladhan.com',
+            'https://api.waktusolat.app/',
           ),
           const SizedBox(height: 12),
           
