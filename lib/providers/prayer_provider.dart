@@ -330,8 +330,21 @@ class PrayerProvider with ChangeNotifier {
             Map<String, dynamic>? prayerData;
             
             if (data is Map<String, dynamic>) {
-              // Check for v2 format with prayerTime array
-              if (data.containsKey('prayerTime') && data['prayerTime'] is List) {
+              // Check for new v2 format with prayers array
+              if (data.containsKey('prayers') && data['prayers'] is List) {
+                final prayersList = data['prayers'] as List;
+                if (prayersList.isNotEmpty) {
+                  // Find today's prayer data
+                  final today = DateTime.now().day;
+                  final todayPrayer = prayersList.firstWhere(
+                    (prayer) => prayer['day'] == today,
+                    orElse: () => prayersList.first,
+                  );
+                  prayerData = todayPrayer as Map<String, dynamic>;
+                }
+              }
+              // Check for old v2 format with prayerTime array
+              else if (data.containsKey('prayerTime') && data['prayerTime'] is List) {
                 final prayerList = data['prayerTime'] as List;
                 if (prayerList.isNotEmpty) {
                   prayerData = prayerList.first as Map<String, dynamic>;
@@ -354,14 +367,25 @@ class PrayerProvider with ChangeNotifier {
             
             if (prayerData != null) {
               // Convert Waktu Solat format to our PrayerTimes format
+              // Handle both string times and Unix timestamps
+              String? _convertTime(dynamic time) {
+                if (time == null) return null;
+                if (time is int) {
+                  // Convert Unix timestamp to HH:MM format
+                  final date = DateTime.fromMillisecondsSinceEpoch(time * 1000);
+                  return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+                }
+                return time.toString();
+              }
+              
               final timingsMap = {
-                'Fajr': prayerData['subuh'] ?? prayerData['fajr'],
-                'Sunrise': prayerData['syuruk'] ?? prayerData['sunrise'],
-                'Dhuhr': prayerData['zohor'] ?? prayerData['dhuhr'],
-                'Asr': prayerData['asar'] ?? prayerData['asr'],
-                'Maghrib': prayerData['maghrib'],
-                'Isha': prayerData['isyak'] ?? prayerData['isha'],
-                'Imsak': prayerData['imsak'],
+                'Fajr': _convertTime(prayerData['fajr'] ?? prayerData['subuh']),
+                'Sunrise': _convertTime(prayerData['syuruk'] ?? prayerData['sunrise']),
+                'Dhuhr': _convertTime(prayerData['dhuhr'] ?? prayerData['zohor']),
+                'Asr': _convertTime(prayerData['asr'] ?? prayerData['asar']),
+                'Maghrib': _convertTime(prayerData['maghrib']),
+                'Isha': _convertTime(prayerData['isha'] ?? prayerData['isyak']),
+                'Imsak': _convertTime(prayerData['imsak']),
               };
               
               // Create date info with Hijri calculation
