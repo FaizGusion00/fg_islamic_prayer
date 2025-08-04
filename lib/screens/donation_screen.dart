@@ -190,7 +190,7 @@ class _DonationScreenState extends State<DonationScreen> {
           
           const SizedBox(height: 16),
           Text(
-            'Scan QR code for quick payment',
+            'Scan QR code for donation',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.grey[600],
             ),

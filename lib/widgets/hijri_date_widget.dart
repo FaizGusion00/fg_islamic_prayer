@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/prayer_provider.dart';
 import '../utils/theme.dart';
+import '../utils/hijri_calculator.dart';
 
 class HijriDateWidget extends StatelessWidget {
   const HijriDateWidget({super.key});
@@ -142,11 +143,22 @@ class HijriDateWidget extends StatelessWidget {
         
         return '$weekday, $day $monthName $year AH';
       } catch (e) {
-        return 'Hijri date unavailable';
+        // Fallback to calculated Hijri date
+        return _getCalculatedHijriDate();
       }
     }
     
-    return 'Hijri date unavailable';
+    // If no Hijri date from API, calculate it locally
+    return _getCalculatedHijriDate();
+  }
+
+  String _getCalculatedHijriDate() {
+    try {
+      final hijriData = HijriCalculator.getCurrentHijriDate();
+      return HijriCalculator.formatHijriDate(hijriData);
+    } catch (e) {
+      return 'Hijri date unavailable';
+    }
   }
 
   String _getCurrentMonthName() {

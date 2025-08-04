@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../models/prayer_times.dart';
 import '../services/notification_service.dart';
 import 'package:geocoding/geocoding.dart';
+import '../utils/hijri_calculator.dart';
 
 class PrayerProvider with ChangeNotifier {
   PrayerTimes? _prayerTimes;
@@ -220,10 +221,38 @@ class PrayerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Method to detect Malaysian zone based on coordinates
-  String? _detectMalaysianZone(double latitude, double longitude) {
+  // Method to detect Malaysian zone based on coordinates using Waktu Solat API
+  Future<String?> _detectMalaysianZone(double latitude, double longitude) async {
+    try {
+      final url = Uri.parse('https://api.waktusolat.app/zones/$latitude/$longitude');
+      print('Detecting Malaysian zone for coordinates: $latitude, $longitude');
+      
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Zone detection timed out');
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final zone = data['zone'] as dynamic;
+        print('Detected zone: $zone');
+        return zone != null ? zone.toString() : null;
+      } else {
+        print('Zone detection failed with status: ${response.statusCode}');
+        return _fallbackZoneDetection(latitude, longitude);
+      }
+    } catch (e) {
+      print('Error detecting zone: $e');
+      return _fallbackZoneDetection(latitude, longitude);
+    }
+  }
+
+  // Fallback zone detection for when API is unavailable
+  String? _fallbackZoneDetection(double latitude, double longitude) {
     // Simplified zone detection for major Malaysian areas
-    // In a real app, you'd want a more comprehensive mapping
+    // This is used as fallback when the API is unavailable
     
     // Selangor zones
     if (latitude >= 2.8 && latitude <= 3.8 && longitude >= 101.0 && longitude <= 102.0) {
@@ -267,7 +296,7 @@ class PrayerProvider with ChangeNotifier {
   // Fetch prayer times from Waktu Solat API
   Future<PrayerTimes?> _fetchFromWaktuSolat(double latitude, double longitude) async {
     try {
-      String? zone = _malaysianZone ?? _detectMalaysianZone(latitude, longitude);
+      String? zone = _malaysianZone ?? await _detectMalaysianZone(latitude, longitude);
       
       if (zone == null) {
         print('Location not in Malaysia, falling back to Aladhan API');
@@ -335,10 +364,31 @@ class PrayerProvider with ChangeNotifier {
                 'Imsak': prayerData['imsak'],
               };
               
-              // Create date info
+              // Create date info with Hijri calculation
+              final now = DateTime.now();
+              final hijriData = HijriCalculator.getCurrentHijriDate();
+              
               final dateInfo = {
-                'readable': prayerData['date'] ?? DateFormat('dd MMM yyyy').format(DateTime.now()),
-                'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+                'readable': prayerData['date'] ?? DateFormat('dd MMM yyyy').format(now),
+                'timestamp': now.millisecondsSinceEpoch.toString(),
+                'hijri': {
+                  'date': hijriData['date'],
+                  'day': hijriData['day'],
+                  'weekday': {'en': hijriData['weekday']},
+                  'month': {
+                    'number': int.parse(hijriData['month']),
+                    'en': hijriData['monthName'],
+                    'ar': hijriData['monthName'],
+                  },
+                  'year': hijriData['year'],
+                },
+                'gregorian': {
+                  'date': DateFormat('dd-MM-yyyy').format(now),
+                  'day': now.day.toString(),
+                  'weekday': {'en': DateFormat('EEEE').format(now)},
+                  'month': {'en': DateFormat('MMMM').format(now)},
+                  'year': now.year.toString(),
+                },
               };
               
               // Create location info

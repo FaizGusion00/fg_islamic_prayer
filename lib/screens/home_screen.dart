@@ -52,33 +52,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     horizontal: constraints.maxWidth > 600 ? 32 : 16,
                     vertical: 16,
                   ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: constraints.maxWidth > 600 ? 600 : double.infinity,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Islamic Header with App Name
-                        const IslamicHeader(),
-                        SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
-                        
-                        // Hijri Date
-                        const HijriDateWidget(),
-                        SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
-                        
-                        // Next Prayer Countdown
-                        const NextPrayerCountdown(),
-                        SizedBox(height: constraints.maxHeight > 700 ? 30 : 20),
-                        
-                        // Prayer Times Section
-                        _buildPrayerTimesSection(),
-                        SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
-                        
-                        // Additional Information
-                        _buildAdditionalInfo(),
-                        SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
-                      ],
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth > 1200 ? 800 : 
+                                 constraints.maxWidth > 800 ? 600 : 
+                                 double.infinity,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Islamic Header with App Name
+                          const IslamicHeader(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                          
+                          // Hijri Date
+                          const HijriDateWidget(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                          
+                          // Next Prayer Countdown
+                          const NextPrayerCountdown(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 30 : 20),
+                          
+                          // Prayer Times Section
+                          _buildPrayerTimesSection(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                          
+                          // Additional Information
+                          _buildAdditionalInfo(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                        ],
+                      ),
                     ),
                   ),
                 );
