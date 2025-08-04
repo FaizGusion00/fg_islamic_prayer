@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import '../models/prayer_times.dart';
 import '../services/notification_service.dart';
 import 'package:geocoding/geocoding.dart';
-import '../utils/hijri_calculator.dart';
+import '../services/hijri_date_service.dart';
 
 class PrayerProvider with ChangeNotifier {
   PrayerTimes? _prayerTimes;
@@ -29,7 +29,78 @@ class PrayerProvider with ChangeNotifier {
   String get calculationMethod => _calculationMethod;
   String get asrMethod => _asrMethod;
   String get apiSource => _apiSource;
-  String? get malaysianZone => _malaysianZone ?? 'Auto-detect';
+  String? get malaysianZone => _malaysianZone;
+  
+  // Get the display name for the current Malaysian zone
+  String get malaysianZoneDisplayName {
+    if (_malaysianZone == null) return 'Auto-detect (Recommended)';
+    
+    // Zone code to display name mapping
+    final zoneNames = {
+      'JHR01': 'JHR01 - Pulau Aur dan Pulau Pemanggil',
+      'JHR02': 'JHR02 - Johor Bahru, Kota Tinggi, Mersing, Kulai',
+      'JHR03': 'JHR03 - Kluang, Pontian',
+      'JHR04': 'JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak',
+      'KDH01': 'KDH01 - Kota Setar, Kubang Pasu, Pokok Sena',
+      'KDH02': 'KDH02 - Kuala Muda, Yan, Pendang',
+      'KDH03': 'KDH03 - Padang Terap, Sik',
+      'KDH04': 'KDH04 - Baling',
+      'KDH05': 'KDH05 - Bandar Baharu, Kulim',
+      'KDH06': 'KDH06 - Langkawi',
+      'KDH07': 'KDH07 - Puncak Gunung Jerai',
+      'KTN01': 'KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai',
+      'KTN02': 'KTN02 - Gua Musang, Jeli, Lojing',
+      'MLK01': 'MLK01 - Seluruh Negeri Melaka',
+      'NGS01': 'NGS01 - Tampin, Jempol',
+      'NGS02': 'NGS02 - Jelebu, Kuala Pilah, Rembau',
+      'NGS03': 'NGS03 - Port Dickson, Seremban',
+      'PHG01': 'PHG01 - Pulau Tioman',
+      'PHG02': 'PHG02 - Kuantan, Pekan, Muadzam Shah',
+      'PHG03': 'PHG03 - Jerantut, Temerloh, Maran, Bera, Chenor, Jengka',
+      'PHG04': 'PHG04 - Bentong, Lipis, Raub',
+      'PHG05': 'PHG05 - Genting Sempah, Janda Baik, Bukit Tinggi',
+      'PHG06': 'PHG06 - Cameron Highlands, Genting Highlands, Bukit Fraser',
+      'PHG07': 'PHG07 - Zon Khas Daerah Rompin',
+      'PRK01': 'PRK01 - Tapah, Slim River, Tanjung Malim',
+      'PRK02': 'PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar',
+      'PRK03': 'PRK03 - Lenggong, Pengkalan Hulu, Grik',
+      'PRK04': 'PRK04 - Temengor, Belum',
+      'PRK05': 'PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor',
+      'PRK06': 'PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar',
+      'PRK07': 'PRK07 - Bukit Larut',
+      'PLS01': 'PLS01 - Seluruh Negeri Perlis',
+      'PNG01': 'PNG01 - Seluruh Negeri Pulau Pinang',
+      'SBH01': 'SBH01 - Bahagian Sandakan (Timur)',
+      'SBH02': 'SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut',
+      'SBH03': 'SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku',
+      'SBH04': 'SBH04 - Bandar Tawau, Balong, Merotai, Kalabakan',
+      'SBH05': 'SBH05 - Kudat, Kota Marudu, Pitas, Pulau Banggi',
+      'SBH06': 'SBH06 - Gunung Kinabalu',
+      'SBH07': 'SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan',
+      'SBH08': 'SBH08 - Pensiangan, Keningau, Tambunan, Nabawan',
+      'SBH09': 'SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston',
+      'SWK01': 'SWK01 - Limbang, Lawas, Sundar, Trusan',
+      'SWK02': 'SWK02 - Miri, Niah, Bekenu, Sibuti, Marudi',
+      'SWK03': 'SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu',
+      'SWK04': 'SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit',
+      'SWK05': 'SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai',
+      'SWK06': 'SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok',
+      'SWK07': 'SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam',
+      'SWK08': 'SWK08 - Kuching, Bau, Lundu, Sematan',
+      'SWK09': 'SWK09 - Zon Khas (Kampung Patarikan)',
+      'SGR01': 'SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam',
+      'SGR02': 'SGR02 - Kuala Selangor, Sabak Bernam',
+      'SGR03': 'SGR03 - Klang, Kuala Langat',
+      'TRG01': 'TRG01 - Kuala Terengganu, Marang, Kuala Nerus',
+      'TRG02': 'TRG02 - Besut, Setiu',
+      'TRG03': 'TRG03 - Hulu Terengganu',
+      'TRG04': 'TRG04 - Dungun, Kemaman',
+      'WLY01': 'WLY01 - Kuala Lumpur, Putrajaya',
+      'WLY02': 'WLY02 - Labuan',
+    };
+    
+    return zoneNames[_malaysianZone] ?? '$_malaysianZone - Unknown Zone';
+  }
 
   // Prayer time names
   final List<String> prayerNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Imsak'];
@@ -62,7 +133,7 @@ class PrayerProvider with ChangeNotifier {
   PrayerProvider() {
     _loadSettings();
     _loadCachedPrayerTimes();
-    getCurrentLocation();
+    // Don't call getCurrentLocation in constructor to avoid blocking
   }
 
   Future<void> _loadSettings() async {
@@ -108,33 +179,26 @@ class PrayerProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Check if location services are enabled
+      // Check if location services are enabled with timeout
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        // Try to open location settings
-        bool opened = await Geolocator.openLocationSettings();
-        if (!opened) {
-          throw Exception('Location services are disabled. Please enable location services in your device settings.');
-        }
-        // Wait a bit and check again
-        await Future.delayed(const Duration(seconds: 2));
-        serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) {
-          throw Exception('Location services are still disabled. Please enable them manually.');
-        }
+        // Don't try to open settings automatically - just inform user
+        throw Exception('Location services are disabled. Please enable location services in your device settings.');
       }
 
-      // Check and request location permissions
+      // Check and request location permissions with timeout
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        permission = await Geolocator.requestPermission().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => LocationPermission.denied,
+        );
         if (permission == LocationPermission.denied) {
           throw Exception('Location permissions are denied. Please grant location permission to get accurate prayer times.');
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        // Try to open app settings
         throw Exception('Location permissions are permanently denied. Please enable location permission in app settings.');
       }
 
@@ -193,6 +257,9 @@ class PrayerProvider with ChangeNotifier {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
+      ).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => [],
       );
       
       if (placemarks.isNotEmpty) {
@@ -238,7 +305,16 @@ class PrayerProvider with ChangeNotifier {
         final data = json.decode(response.body);
         final zone = data['zone'] as dynamic;
         print('Detected zone: $zone');
-        return zone != null ? zone.toString() : null;
+        
+        if (zone != null) {
+          // Save the detected zone immediately
+          _malaysianZone = zone.toString();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('malaysian_zone', zone.toString());
+          notifyListeners();
+          return zone.toString();
+        }
+        return null;
       } else {
         print('Zone detection failed with status: ${response.statusCode}');
         return _fallbackZoneDetection(latitude, longitude);
@@ -251,38 +327,131 @@ class PrayerProvider with ChangeNotifier {
 
   // Fallback zone detection for when API is unavailable
   String? _fallbackZoneDetection(double latitude, double longitude) {
-    // Simplified zone detection for major Malaysian areas
+    // More accurate zone detection for major Malaysian areas
     // This is used as fallback when the API is unavailable
     
-    // Selangor zones
+    // Kuala Lumpur and Putrajaya
+    if (latitude >= 2.9 && latitude <= 3.3 && longitude >= 101.5 && longitude <= 101.8) {
+      return 'WLY01'; // Kuala Lumpur, Putrajaya
+    }
+    
+    // Selangor zones - more precise boundaries
     if (latitude >= 2.8 && latitude <= 3.8 && longitude >= 101.0 && longitude <= 102.0) {
-      return 'SGR01'; // Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Rawang
-    }
-    if (latitude >= 3.0 && latitude <= 3.5 && longitude >= 100.8 && longitude <= 101.5) {
-      return 'SGR02'; // Kuala Langat, Kuala Selangor, Klang
-    }
-    
-    // Kuala Lumpur
-    if (latitude >= 3.0 && latitude <= 3.3 && longitude >= 101.5 && longitude <= 101.8) {
-      return 'WLY01'; // Kuala Lumpur
-    }
-    
-    // Putrajaya
-    if (latitude >= 2.8 && latitude <= 3.0 && longitude >= 101.6 && longitude <= 101.8) {
-      return 'WLY02'; // Putrajaya
+      // SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam
+      if (latitude >= 3.0 && latitude <= 3.3 && longitude >= 101.5 && longitude <= 101.8) {
+        return 'SGR01';
+      }
+      // SGR02 - Kuala Selangor, Sabak Bernam
+      if (latitude >= 3.3 && latitude <= 3.8 && longitude >= 101.0 && longitude <= 101.5) {
+        return 'SGR02';
+      }
+      // SGR03 - Klang, Kuala Langat
+      if (latitude >= 2.8 && latitude <= 3.2 && longitude >= 101.0 && longitude <= 101.5) {
+        return 'SGR03';
+      }
+      // Default to SGR01 for other Selangor areas
+      return 'SGR01';
     }
     
     // Johor zones
     if (latitude >= 1.2 && latitude <= 2.8 && longitude >= 102.5 && longitude <= 104.5) {
-      if (latitude >= 1.4 && latitude <= 1.6 && longitude >= 103.6 && longitude <= 103.9) {
-        return 'JHR01'; // Johor Bahru, Kota Tinggi, Mersing
+      // JHR01 - Pulau Aur dan Pulau Pemanggil
+      if (latitude >= 2.4 && latitude <= 2.6 && longitude >= 104.0 && longitude <= 104.5) {
+        return 'JHR01';
       }
-      return 'JHR02'; // Other Johor areas
+      // JHR02 - Johor Bahru, Kota Tinggi, Mersing, Kulai
+      if (latitude >= 1.4 && latitude <= 2.0 && longitude >= 103.5 && longitude <= 104.0) {
+        return 'JHR02';
+      }
+      // JHR03 - Kluang, Pontian
+      if (latitude >= 1.8 && latitude <= 2.2 && longitude >= 103.0 && longitude <= 103.5) {
+        return 'JHR03';
+      }
+      // JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak
+      if (latitude >= 1.2 && latitude <= 2.0 && longitude >= 102.5 && longitude <= 103.5) {
+        return 'JHR04';
+      }
+      // Default to JHR02 for other Johor areas
+      return 'JHR02';
     }
     
     // Penang
     if (latitude >= 5.0 && latitude <= 5.7 && longitude >= 100.0 && longitude <= 100.6) {
       return 'PNG01'; // Penang
+    }
+    
+    // Kedah zones
+    if (latitude >= 5.0 && latitude <= 6.5 && longitude >= 99.5 && longitude <= 101.0) {
+      // KDH01 - Kota Setar, Kubang Pasu, Pokok Sena
+      if (latitude >= 6.0 && latitude <= 6.5 && longitude >= 100.0 && longitude <= 100.5) {
+        return 'KDH01';
+      }
+      // KDH02 - Kuala Muda, Yan, Pendang
+      if (latitude >= 5.5 && latitude <= 6.0 && longitude >= 100.0 && longitude <= 100.5) {
+        return 'KDH02';
+      }
+      // KDH03 - Padang Terap, Sik
+      if (latitude >= 6.0 && latitude <= 6.5 && longitude >= 100.5 && longitude <= 101.0) {
+        return 'KDH03';
+      }
+      // KDH04 - Baling
+      if (latitude >= 5.5 && latitude <= 6.0 && longitude >= 100.5 && longitude <= 101.0) {
+        return 'KDH04';
+      }
+      // KDH05 - Bandar Baharu, Kulim
+      if (latitude >= 5.0 && latitude <= 5.5 && longitude >= 100.0 && longitude <= 100.5) {
+        return 'KDH05';
+      }
+      // KDH06 - Langkawi
+      if (latitude >= 6.0 && latitude <= 6.5 && longitude >= 99.5 && longitude <= 100.0) {
+        return 'KDH06';
+      }
+      // KDH07 - Puncak Gunung Jerai
+      if (latitude >= 5.8 && latitude <= 6.2 && longitude >= 100.2 && longitude <= 100.6) {
+        return 'KDH07';
+      }
+      // Default to KDH01 for other Kedah areas
+      return 'KDH01';
+    }
+    
+    // Kelantan
+    if (latitude >= 4.5 && latitude <= 6.0 && longitude >= 101.5 && longitude <= 103.0) {
+      return 'KTN01'; // Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai
+    }
+    
+    // Terengganu
+    if (latitude >= 4.0 && latitude <= 5.5 && longitude >= 102.5 && longitude <= 103.5) {
+      return 'TRG01'; // Kuala Terengganu, Marang, Kuala Nerus
+    }
+    
+    // Pahang
+    if (latitude >= 2.5 && latitude <= 4.5 && longitude >= 101.5 && longitude <= 103.5) {
+      return 'PHG02'; // Kuantan, Pekan, Muadzam Shah
+    }
+    
+    // Perak
+    if (latitude >= 3.5 && latitude <= 5.5 && longitude >= 100.5 && longitude <= 101.5) {
+      return 'PRK02'; // Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar
+    }
+    
+    // Negeri Sembilan
+    if (latitude >= 2.5 && latitude <= 3.5 && longitude >= 101.5 && longitude <= 102.5) {
+      return 'NGS03'; // Port Dickson, Seremban
+    }
+    
+    // Melaka
+    if (latitude >= 2.0 && latitude <= 2.5 && longitude >= 102.0 && longitude <= 102.5) {
+      return 'MLK01'; // Seluruh Negeri Melaka
+    }
+    
+    // Perlis
+    if (latitude >= 6.0 && latitude <= 6.5 && longitude >= 99.5 && longitude <= 100.5) {
+      return 'PLS01'; // Seluruh Negeri Perlis
+    }
+    
+    // Labuan
+    if (latitude >= 5.0 && latitude <= 5.5 && longitude >= 115.0 && longitude <= 115.5) {
+      return 'WLY02'; // Labuan
     }
     
     // Default to Selangor if in Malaysia but zone not detected
@@ -308,6 +477,7 @@ class PrayerProvider with ChangeNotifier {
         _malaysianZone = zone;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('malaysian_zone', zone);
+        notifyListeners(); // Notify UI to update the display
       }
       
       // Try v2 endpoint first, then fallback to v1
@@ -390,7 +560,7 @@ class PrayerProvider with ChangeNotifier {
               
               // Create date info with Hijri calculation
               final now = DateTime.now();
-              final hijriData = HijriCalculator.getCurrentHijriDate();
+              final hijriData = await HijriDateService.getCurrentHijriDate();
               
               final dateInfo = {
                 'readable': prayerData['date'] ?? DateFormat('dd MMM yyyy').format(now),
@@ -659,6 +829,19 @@ class PrayerProvider with ChangeNotifier {
     notifyListeners();
     if (_apiSource == 'waktusolat') {
       await fetchPrayerTimes();
+    }
+  }
+  
+  // Method to refresh zone detection based on current location
+  Future<void> refreshZoneDetection() async {
+    if (_currentPosition != null) {
+      final detectedZone = await _detectMalaysianZone(_currentPosition!.latitude, _currentPosition!.longitude);
+      if (detectedZone != null) {
+        _malaysianZone = detectedZone;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('malaysian_zone', detectedZone);
+        notifyListeners();
+      }
     }
   }
 

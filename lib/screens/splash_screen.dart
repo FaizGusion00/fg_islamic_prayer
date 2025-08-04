@@ -165,8 +165,14 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             child: SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Spacer to push content to center
+                  const Spacer(),
+                  
+                  // Main content
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   // Animated Logo
                   Transform.scale(
                     scale: _logoScale.value,
@@ -303,6 +309,48 @@ class _SplashScreenState extends State<SplashScreen>
                           textAlign: TextAlign.center,
                         ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Spacer to push developer credit to bottom
+              const Spacer(),
+                  
+                  // Developer Credit
+                  FadeTransition(
+                    opacity: _textOpacity,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.code,
+                            size: 16,
+                            color: (isDarkMode ? AppTheme.primaryGold : AppTheme.primaryTeal)
+                                .withValues(alpha: 0.7),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Developed by: ',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            'Faiz Nasir',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: isDarkMode ? AppTheme.primaryGold : AppTheme.primaryTeal,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

@@ -92,273 +92,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     if (prayerProvider.apiSource == 'waktusolat') ...[
-                      _buildDropdownTile(
+                                            _buildMalaysianZoneDropdownTile(
                         'Malaysian Zone',
                         'Select your Malaysian prayer time zone',
                         Icons.location_on,
-                        prayerProvider.malaysianZone ?? 'Auto-detect',
-                        [
-                          const DropdownMenuItem(
-                            value: 'Auto-detect',
-                            child: Text('Auto-detect (Recommended)'),
-                          ),
-                          // Johor zones
-                          const DropdownMenuItem(
-                            value: 'JHR01',
-                            child: Text('JHR01 - Pulau Aur dan Pulau Pemanggil'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'JHR02',
-                            child: Text('JHR02 - Johor Bahru, Kota Tinggi, Mersing, Kulai'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'JHR03',
-                            child: Text('JHR03 - Kluang, Pontian'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'JHR04',
-                            child: Text('JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak'),
-                          ),
-                          // Kedah zones
-                          const DropdownMenuItem(
-                            value: 'KDH01',
-                            child: Text('KDH01 - Kota Setar, Kubang Pasu, Pokok Sena'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KDH02',
-                            child: Text('KDH02 - Kuala Muda, Yan, Pendang'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KDH03',
-                            child: Text('KDH03 - Padang Terap, Sik'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KDH04',
-                            child: Text('KDH04 - Baling'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KDH05',
-                            child: Text('KDH05 - Bandar Baharu, Kulim'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KDH06',
-                            child: Text('KDH06 - Langkawi'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KDH07',
-                            child: Text('KDH07 - Puncak Gunung Jerai'),
-                          ),
-                          // Kelantan zones
-                          const DropdownMenuItem(
-                            value: 'KTN01',
-                            child: Text('KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'KTN02',
-                            child: Text('KTN02 - Gua Musang, Jeli, Lojing'),
-                          ),
-                          // Melaka
-                          const DropdownMenuItem(
-                            value: 'MLK01',
-                            child: Text('MLK01 - Seluruh Negeri Melaka'),
-                          ),
-                          // Negeri Sembilan zones
-                          const DropdownMenuItem(
-                            value: 'NGS01',
-                            child: Text('NGS01 - Tampin, Jempol'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'NGS02',
-                            child: Text('NGS02 - Jelebu, Kuala Pilah, Rembau'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'NGS03',
-                            child: Text('NGS03 - Port Dickson, Seremban'),
-                          ),
-                          // Pahang zones
-                          const DropdownMenuItem(
-                            value: 'PHG01',
-                            child: Text('PHG01 - Pulau Tioman'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PHG02',
-                            child: Text('PHG02 - Kuantan, Pekan, Muadzam Shah'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PHG03',
-                            child: Text('PHG03 - Jerantut, Temerloh, Maran, Bera, Chenor, Jengka'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PHG04',
-                            child: Text('PHG04 - Bentong, Lipis, Raub'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PHG05',
-                            child: Text('PHG05 - Genting Sempah, Janda Baik, Bukit Tinggi'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PHG06',
-                            child: Text('PHG06 - Cameron Highlands, Genting Highlands, Bukit Fraser'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PHG07',
-                            child: Text('PHG07 - Zon Khas Daerah Rompin'),
-                          ),
-                          // Perak zones
-                          const DropdownMenuItem(
-                            value: 'PRK01',
-                            child: Text('PRK01 - Tapah, Slim River, Tanjung Malim'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PRK02',
-                            child: Text('PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PRK03',
-                            child: Text('PRK03 - Lenggong, Pengkalan Hulu, Grik'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PRK04',
-                            child: Text('PRK04 - Temengor, Belum'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PRK05',
-                            child: Text('PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PRK06',
-                            child: Text('PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'PRK07',
-                            child: Text('PRK07 - Bukit Larut'),
-                          ),
-                          // Perlis
-                          const DropdownMenuItem(
-                            value: 'PLS01',
-                            child: Text('PLS01 - Seluruh Negeri Perlis'),
-                          ),
-                          // Pulau Pinang
-                          const DropdownMenuItem(
-                            value: 'PNG01',
-                            child: Text('PNG01 - Seluruh Negeri Pulau Pinang'),
-                          ),
-                          // Sabah zones
-                          const DropdownMenuItem(
-                            value: 'SBH01',
-                            child: Text('SBH01 - Bahagian Sandakan (Timur)'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH02',
-                            child: Text('SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH03',
-                            child: Text('SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH04',
-                            child: Text('SBH04 - Bandar Tawau, Balong, Merotai, Kalabakan'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH05',
-                            child: Text('SBH05 - Kudat, Kota Marudu, Pitas, Pulau Banggi'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH06',
-                            child: Text('SBH06 - Gunung Kinabalu'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH07',
-                            child: Text('SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH08',
-                            child: Text('SBH08 - Pensiangan, Keningau, Tambunan, Nabawan'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SBH09',
-                            child: Text('SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston'),
-                          ),
-                          // Sarawak zones
-                          const DropdownMenuItem(
-                            value: 'SWK01',
-                            child: Text('SWK01 - Limbang, Lawas, Sundar, Trusan'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK02',
-                            child: Text('SWK02 - Miri, Niah, Bekenu, Sibuti, Marudi'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK03',
-                            child: Text('SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK04',
-                            child: Text('SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK05',
-                            child: Text('SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK06',
-                            child: Text('SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK07',
-                            child: Text('SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK08',
-                            child: Text('SWK08 - Kuching, Bau, Lundu, Sematan'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SWK09',
-                            child: Text('SWK09 - Zon Khas (Kampung Patarikan)'),
-                          ),
-                          // Selangor zones
-                          const DropdownMenuItem(
-                            value: 'SGR01',
-                            child: Text('SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SGR02',
-                            child: Text('SGR02 - Kuala Selangor, Sabak Bernam'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'SGR03',
-                            child: Text('SGR03 - Klang, Kuala Langat'),
-                          ),
-                          // Terengganu zones
-                          const DropdownMenuItem(
-                            value: 'TRG01',
-                            child: Text('TRG01 - Kuala Terengganu, Marang, Kuala Nerus'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'TRG02',
-                            child: Text('TRG02 - Besut, Setiu'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'TRG03',
-                            child: Text('TRG03 - Hulu Terengganu'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'TRG04',
-                            child: Text('TRG04 - Dungun, Kemaman'),
-                          ),
-                          // Wilayah Persekutuan
-                          const DropdownMenuItem(
-                            value: 'WLY01',
-                            child: Text('WLY01 - Kuala Lumpur, Putrajaya'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'WLY02',
-                            child: Text('WLY02 - Labuan'),
-                          ),
-                        ],
+                        prayerProvider.malaysianZone,
                         (value) {
                           prayerProvider.updateMalaysianZone(value);
+                        },
+                      ),
+                      // Refresh zone detection button
+                      ListTile(
+                        leading: const Icon(Icons.refresh, color: Colors.blue),
+                        title: const Text('Refresh Zone Detection'),
+                        subtitle: const Text('Re-detect your location zone'),
+                        onTap: () async {
+                          await prayerProvider.refreshZoneDetection();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Zone detection refreshed!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
                         },
                       ),
                     ],
@@ -551,6 +308,364 @@ class _SettingsScreenState extends State<SettingsScreen> {
           DropdownButtonFormField<String>(
             value: currentValue,
             items: items,
+            onChanged: onChanged,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            isExpanded: true,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildMalaysianZoneDropdownTile(
+    String title,
+    String subtitle,
+    IconData icon,
+    String? currentZone,
+    ValueChanged<String?> onChanged,
+  ) {
+    // Get the display name for the current zone
+    String displayValue = 'Auto-detect (Recommended)';
+    if (currentZone != null && currentZone != 'Auto-detect') {
+      // Zone code to display name mapping
+      final zoneNames = {
+        'JHR01': 'JHR01 - Pulau Aur dan Pulau Pemanggil',
+        'JHR02': 'JHR02 - Johor Bahru, Kota Tinggi, Mersing, Kulai',
+        'JHR03': 'JHR03 - Kluang, Pontian',
+        'JHR04': 'JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak',
+        'KDH01': 'KDH01 - Kota Setar, Kubang Pasu, Pokok Sena',
+        'KDH02': 'KDH02 - Kuala Muda, Yan, Pendang',
+        'KDH03': 'KDH03 - Padang Terap, Sik',
+        'KDH04': 'KDH04 - Baling',
+        'KDH05': 'KDH05 - Bandar Baharu, Kulim',
+        'KDH06': 'KDH06 - Langkawi',
+        'KDH07': 'KDH07 - Puncak Gunung Jerai',
+        'KTN01': 'KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai',
+        'KTN02': 'KTN02 - Gua Musang, Jeli, Lojing',
+        'MLK01': 'MLK01 - Seluruh Negeri Melaka',
+        'NGS01': 'NGS01 - Tampin, Jempol',
+        'NGS02': 'NGS02 - Jelebu, Kuala Pilah, Rembau',
+        'NGS03': 'NGS03 - Port Dickson, Seremban',
+        'PHG01': 'PHG01 - Pulau Tioman',
+        'PHG02': 'PHG02 - Kuantan, Pekan, Muadzam Shah',
+        'PHG03': 'PHG03 - Jerantut, Temerloh, Maran, Bera, Chenor, Jengka',
+        'PHG04': 'PHG04 - Bentong, Lipis, Raub',
+        'PHG05': 'PHG05 - Genting Sempah, Janda Baik, Bukit Tinggi',
+        'PHG06': 'PHG06 - Cameron Highlands, Genting Highlands, Bukit Fraser',
+        'PHG07': 'PHG07 - Zon Khas Daerah Rompin',
+        'PRK01': 'PRK01 - Tapah, Slim River, Tanjung Malim',
+        'PRK02': 'PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar',
+        'PRK03': 'PRK03 - Lenggong, Pengkalan Hulu, Grik',
+        'PRK04': 'PRK04 - Temengor, Belum',
+        'PRK05': 'PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor',
+        'PRK06': 'PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar',
+        'PRK07': 'PRK07 - Bukit Larut',
+        'PLS01': 'PLS01 - Seluruh Negeri Perlis',
+        'PNG01': 'PNG01 - Seluruh Negeri Pulau Pinang',
+        'SBH01': 'SBH01 - Bahagian Sandakan (Timur)',
+        'SBH02': 'SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut',
+        'SBH03': 'SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku',
+        'SBH04': 'SBH04 - Bandar Tawau, Balong, Merotai, Kalabakan',
+        'SBH05': 'SBH05 - Kudat, Kota Marudu, Pitas, Pulau Banggi',
+        'SBH06': 'SBH06 - Gunung Kinabalu',
+        'SBH07': 'SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan',
+        'SBH08': 'SBH08 - Pensiangan, Keningau, Tambunan, Nabawan',
+        'SBH09': 'SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston',
+        'SWK01': 'SWK01 - Limbang, Lawas, Sundar, Trusan',
+        'SWK02': 'SWK02 - Miri, Niah, Bekenu, Sibuti, Marudi',
+        'SWK03': 'SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu',
+        'SWK04': 'SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit',
+        'SWK05': 'SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai',
+        'SWK06': 'SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok',
+        'SWK07': 'SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam',
+        'SWK08': 'SWK08 - Kuching, Bau, Lundu, Sematan',
+        'SWK09': 'SWK09 - Zon Khas (Kampung Patarikan)',
+        'SGR01': 'SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam',
+        'SGR02': 'SGR02 - Kuala Selangor, Sabak Bernam',
+        'SGR03': 'SGR03 - Klang, Kuala Langat',
+        'TRG01': 'TRG01 - Kuala Terengganu, Marang, Kuala Nerus',
+        'TRG02': 'TRG02 - Besut, Setiu',
+        'TRG03': 'TRG03 - Hulu Terengganu',
+        'TRG04': 'TRG04 - Dungun, Kemaman',
+        'WLY01': 'WLY01 - Kuala Lumpur, Putrajaya',
+        'WLY02': 'WLY02 - Labuan',
+      };
+      displayValue = zoneNames[currentZone] ?? '$currentZone - Unknown Zone';
+    }
+    
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(subtitle),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: currentZone ?? 'Auto-detect',
+            items: [
+              const DropdownMenuItem(
+                value: 'Auto-detect',
+                child: Text('Auto-detect (Recommended)'),
+              ),
+              // Johor zones
+              const DropdownMenuItem(
+                value: 'JHR01',
+                child: Text('JHR01 - Pulau Aur dan Pulau Pemanggil'),
+              ),
+              const DropdownMenuItem(
+                value: 'JHR02',
+                child: Text('JHR02 - Johor Bahru, Kota Tinggi, Mersing, Kulai'),
+              ),
+              const DropdownMenuItem(
+                value: 'JHR03',
+                child: Text('JHR03 - Kluang, Pontian'),
+              ),
+              const DropdownMenuItem(
+                value: 'JHR04',
+                child: Text('JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak'),
+              ),
+              // Kedah zones
+              const DropdownMenuItem(
+                value: 'KDH01',
+                child: Text('KDH01 - Kota Setar, Kubang Pasu, Pokok Sena'),
+              ),
+              const DropdownMenuItem(
+                value: 'KDH02',
+                child: Text('KDH02 - Kuala Muda, Yan, Pendang'),
+              ),
+              const DropdownMenuItem(
+                value: 'KDH03',
+                child: Text('KDH03 - Padang Terap, Sik'),
+              ),
+              const DropdownMenuItem(
+                value: 'KDH04',
+                child: Text('KDH04 - Baling'),
+              ),
+              const DropdownMenuItem(
+                value: 'KDH05',
+                child: Text('KDH05 - Bandar Baharu, Kulim'),
+              ),
+              const DropdownMenuItem(
+                value: 'KDH06',
+                child: Text('KDH06 - Langkawi'),
+              ),
+              const DropdownMenuItem(
+                value: 'KDH07',
+                child: Text('KDH07 - Puncak Gunung Jerai'),
+              ),
+              // Kelantan zones
+              const DropdownMenuItem(
+                value: 'KTN01',
+                child: Text('KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai'),
+              ),
+              const DropdownMenuItem(
+                value: 'KTN02',
+                child: Text('KTN02 - Gua Musang, Jeli, Lojing'),
+              ),
+              // Melaka
+              const DropdownMenuItem(
+                value: 'MLK01',
+                child: Text('MLK01 - Seluruh Negeri Melaka'),
+              ),
+              // Negeri Sembilan zones
+              const DropdownMenuItem(
+                value: 'NGS01',
+                child: Text('NGS01 - Tampin, Jempol'),
+              ),
+              const DropdownMenuItem(
+                value: 'NGS02',
+                child: Text('NGS02 - Jelebu, Kuala Pilah, Rembau'),
+              ),
+              const DropdownMenuItem(
+                value: 'NGS03',
+                child: Text('NGS03 - Port Dickson, Seremban'),
+              ),
+              // Pahang zones
+              const DropdownMenuItem(
+                value: 'PHG01',
+                child: Text('PHG01 - Pulau Tioman'),
+              ),
+              const DropdownMenuItem(
+                value: 'PHG02',
+                child: Text('PHG02 - Kuantan, Pekan, Muadzam Shah'),
+              ),
+              const DropdownMenuItem(
+                value: 'PHG03',
+                child: Text('PHG03 - Jerantut, Temerloh, Maran, Bera, Chenor, Jengka'),
+              ),
+              const DropdownMenuItem(
+                value: 'PHG04',
+                child: Text('PHG04 - Bentong, Lipis, Raub'),
+              ),
+              const DropdownMenuItem(
+                value: 'PHG05',
+                child: Text('PHG05 - Genting Sempah, Janda Baik, Bukit Tinggi'),
+              ),
+              const DropdownMenuItem(
+                value: 'PHG06',
+                child: Text('PHG06 - Cameron Highlands, Genting Highlands, Bukit Fraser'),
+              ),
+              const DropdownMenuItem(
+                value: 'PHG07',
+                child: Text('PHG07 - Zon Khas Daerah Rompin'),
+              ),
+              // Perak zones
+              const DropdownMenuItem(
+                value: 'PRK01',
+                child: Text('PRK01 - Tapah, Slim River, Tanjung Malim'),
+              ),
+              const DropdownMenuItem(
+                value: 'PRK02',
+                child: Text('PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar'),
+              ),
+              const DropdownMenuItem(
+                value: 'PRK03',
+                child: Text('PRK03 - Lenggong, Pengkalan Hulu, Grik'),
+              ),
+              const DropdownMenuItem(
+                value: 'PRK04',
+                child: Text('PRK04 - Temengor, Belum'),
+              ),
+              const DropdownMenuItem(
+                value: 'PRK05',
+                child: Text('PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor'),
+              ),
+              const DropdownMenuItem(
+                value: 'PRK06',
+                child: Text('PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar'),
+              ),
+              const DropdownMenuItem(
+                value: 'PRK07',
+                child: Text('PRK07 - Bukit Larut'),
+              ),
+              // Perlis
+              const DropdownMenuItem(
+                value: 'PLS01',
+                child: Text('PLS01 - Seluruh Negeri Perlis'),
+              ),
+              // Pulau Pinang
+              const DropdownMenuItem(
+                value: 'PNG01',
+                child: Text('PNG01 - Seluruh Negeri Pulau Pinang'),
+              ),
+              // Sabah zones
+              const DropdownMenuItem(
+                value: 'SBH01',
+                child: Text('SBH01 - Bahagian Sandakan (Timur)'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH02',
+                child: Text('SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH03',
+                child: Text('SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH04',
+                child: Text('SBH04 - Bandar Tawau, Balong, Merotai, Kalabakan'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH05',
+                child: Text('SBH05 - Kudat, Kota Marudu, Pitas, Pulau Banggi'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH06',
+                child: Text('SBH06 - Gunung Kinabalu'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH07',
+                child: Text('SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH08',
+                child: Text('SBH08 - Pensiangan, Keningau, Tambunan, Nabawan'),
+              ),
+              const DropdownMenuItem(
+                value: 'SBH09',
+                child: Text('SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston'),
+              ),
+              // Sarawak zones
+              const DropdownMenuItem(
+                value: 'SWK01',
+                child: Text('SWK01 - Limbang, Lawas, Sundar, Trusan'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK02',
+                child: Text('SWK02 - Miri, Niah, Bekenu, Sibuti, Marudi'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK03',
+                child: Text('SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK04',
+                child: Text('SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK05',
+                child: Text('SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK06',
+                child: Text('SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK07',
+                child: Text('SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK08',
+                child: Text('SWK08 - Kuching, Bau, Lundu, Sematan'),
+              ),
+              const DropdownMenuItem(
+                value: 'SWK09',
+                child: Text('SWK09 - Zon Khas (Kampung Patarikan)'),
+              ),
+              // Selangor zones
+              const DropdownMenuItem(
+                value: 'SGR01',
+                child: Text('SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam'),
+              ),
+              const DropdownMenuItem(
+                value: 'SGR02',
+                child: Text('SGR02 - Kuala Selangor, Sabak Bernam'),
+              ),
+              const DropdownMenuItem(
+                value: 'SGR03',
+                child: Text('SGR03 - Klang, Kuala Langat'),
+              ),
+              // Terengganu zones
+              const DropdownMenuItem(
+                value: 'TRG01',
+                child: Text('TRG01 - Kuala Terengganu, Marang, Kuala Nerus'),
+              ),
+              const DropdownMenuItem(
+                value: 'TRG02',
+                child: Text('TRG02 - Besut, Setiu'),
+              ),
+              const DropdownMenuItem(
+                value: 'TRG03',
+                child: Text('TRG03 - Hulu Terengganu'),
+              ),
+              const DropdownMenuItem(
+                value: 'TRG04',
+                child: Text('TRG04 - Dungun, Kemaman'),
+              ),
+              // Wilayah Persekutuan
+              const DropdownMenuItem(
+                value: 'WLY01',
+                child: Text('WLY01 - Kuala Lumpur, Putrajaya'),
+              ),
+              const DropdownMenuItem(
+                value: 'WLY02',
+                child: Text('WLY02 - Labuan'),
+              ),
+            ],
             onChanged: onChanged,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),

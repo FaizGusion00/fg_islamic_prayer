@@ -7,6 +7,8 @@ import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_countdown.dart';
 import '../widgets/hijri_date_widget.dart';
 import '../widgets/islamic_header.dart';
+import '../widgets/moon_phase_widget.dart';
+import '../widgets/islamic_quote_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,13 +21,30 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Delay location request to prevent blocking UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PrayerProvider>().getCurrentLocation();
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          context.read<PrayerProvider>().getCurrentLocation();
+        }
+      });
     });
   }
 
   Future<void> _onRefresh() async {
-    await context.read<PrayerProvider>().refreshPrayerTimes();
+    try {
+      await context.read<PrayerProvider>().refreshPrayerTimes();
+    } catch (e) {
+      // Handle refresh errors gracefully
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Refresh failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -76,6 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           
                           // Prayer Times Section
                           _buildPrayerTimesSection(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                          
+                          // Moon Phase Widget
+                          const MoonPhaseWidget(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                          
+                          // Islamic Quote Widget
+                          const IslamicQuoteWidget(),
                           SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
                           
                           // Additional Information

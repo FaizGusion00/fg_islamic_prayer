@@ -16,6 +16,7 @@ import 'screens/settings_screen.dart';
 import 'screens/license_screen.dart';
 import 'utils/theme.dart';
 import 'services/notification_service.dart';
+import 'utils/performance_optimizer.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -28,6 +29,9 @@ void main() async {
   
   // Initialize notifications
   await NotificationService.initialize();
+  
+  // Initialize performance optimizations
+  await PerformanceOptimizer.initialize();
   
   // Request permissions
   await _requestPermissions();

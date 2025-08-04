@@ -3,10 +3,42 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/prayer_provider.dart';
 import '../utils/theme.dart';
-import '../utils/hijri_calculator.dart';
+import '../services/hijri_date_service.dart';
 
-class HijriDateWidget extends StatelessWidget {
+class HijriDateWidget extends StatefulWidget {
   const HijriDateWidget({super.key});
+
+  @override
+  State<HijriDateWidget> createState() => _HijriDateWidgetState();
+}
+
+class _HijriDateWidgetState extends State<HijriDateWidget> {
+  Map<String, dynamic>? _hijriData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHijriDate();
+  }
+
+  Future<void> _loadHijriDate() async {
+    try {
+      final hijriData = await HijriDateService.getCurrentHijriDate();
+      if (mounted) {
+        setState(() {
+          _hijriData = hijriData;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +47,6 @@ class HijriDateWidget extends StatelessWidget {
     return Consumer<PrayerProvider>(
       builder: (context, prayerProvider, child) {
         final prayerTimes = prayerProvider.prayerTimes;
-        final hijriDate = prayerTimes?.date?.hijri;
         final gregorianDate = prayerTimes?.date?.gregorian;
         
         return Container(
@@ -68,9 +99,17 @@ class HijriDateWidget extends StatelessWidget {
                     const SizedBox(height: 2),
                     
                     // Hijri Date
-                    if (hijriDate != null)
+                    if (_isLoading)
                       Text(
-                        _getHijriDateString(hijriDate),
+                        'Loading Hijri date...',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      )
+                    else if (_hijriData != null)
+                      Text(
+                        HijriDateService.formatHijriDate(_hijriData!),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isDarkMode ? AppTheme.primaryGold : AppTheme.primaryTeal,
                           fontWeight: FontWeight.w500,
@@ -128,38 +167,7 @@ class HijriDateWidget extends StatelessWidget {
     return DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
   }
 
-  String _getHijriDateString(dynamic hijriDate) {
-    if (hijriDate != null) {
-      try {
-        final day = hijriDate.day ?? '1';
-        final monthInfo = hijriDate.monthInfo;
-        final year = hijriDate.year ?? '1445';
-        final weekday = hijriDate.weekday ?? 'Monday';
-        
-        String monthName = 'Muharram';
-        if (monthInfo != null && monthInfo.en != null) {
-          monthName = monthInfo.en!;
-        }
-        
-        return '$weekday, $day $monthName $year AH';
-      } catch (e) {
-        // Fallback to calculated Hijri date
-        return _getCalculatedHijriDate();
-      }
-    }
-    
-    // If no Hijri date from API, calculate it locally
-    return _getCalculatedHijriDate();
-  }
 
-  String _getCalculatedHijriDate() {
-    try {
-      final hijriData = HijriCalculator.getCurrentHijriDate();
-      return HijriCalculator.formatHijriDate(hijriData);
-    } catch (e) {
-      return 'Hijri date unavailable';
-    }
-  }
 
   String _getCurrentMonthName() {
     final months = [

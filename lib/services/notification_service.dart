@@ -183,39 +183,66 @@ class NotificationService {
             timeoutAfter: 60000,
           );
         } else {
-          // For Android 8.0+ try with sound first, fallback to silent if needed
-          try {
-            androidDetails = AndroidNotificationDetails(
-              channelId,
-              'Prayer Time Notifications',
-              channelDescription: 'Notifications for Islamic prayer times',
-              importance: Importance.max,
-              priority: Priority.high,
-              enableVibration: isVibrationEnabled,
-              playSound: isAzanEnabled,
-              sound: isAzanEnabled 
-                  ? (isFullAzan 
-                      ? const RawResourceAndroidNotificationSound('azan_full')
-                      : const RawResourceAndroidNotificationSound('azan_short'))
-                  : null,
-              icon: '@mipmap/ic_launcher',
-              largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-              styleInformation: BigTextStyleInformation(
-                _getPrayerMessage(prayerName),
-                contentTitle: 'Time for $prayerName Prayer',
-                summaryText: 'FGIslamicPrayer',
-              ),
-              category: AndroidNotificationCategory.reminder,
-              visibility: NotificationVisibility.public,
-              fullScreenIntent: true,
-              ongoing: false,
-              autoCancel: false,
-              showWhen: true,
-              timeoutAfter: 60000,
-            );
-          } catch (soundError) {
-            print('Error with sound notification, falling back to silent: $soundError');
-            // Fallback to silent channel
+          // For Android 8.0+ handle different notification types
+          if (isAzanEnabled) {
+            // User wants azan sound
+            try {
+              androidDetails = AndroidNotificationDetails(
+                channelId,
+                'Prayer Time Notifications',
+                channelDescription: 'Notifications for Islamic prayer times',
+                importance: Importance.max,
+                priority: Priority.high,
+                enableVibration: isVibrationEnabled,
+                playSound: true,
+                sound: isFullAzan 
+                    ? const RawResourceAndroidNotificationSound('azan_full')
+                    : const RawResourceAndroidNotificationSound('azan_short'),
+                icon: '@mipmap/ic_launcher',
+                largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+                styleInformation: BigTextStyleInformation(
+                  _getPrayerMessage(prayerName),
+                  contentTitle: 'Time for $prayerName Prayer',
+                  summaryText: 'FGIslamicPrayer',
+                ),
+                category: AndroidNotificationCategory.reminder,
+                visibility: NotificationVisibility.public,
+                fullScreenIntent: true,
+                ongoing: false,
+                autoCancel: false,
+                showWhen: true,
+                timeoutAfter: 60000,
+              );
+            } catch (soundError) {
+              print('Error with sound notification, falling back to silent: $soundError');
+              // Fallback to silent channel with separate audio playback
+              channelId = 'prayer_notifications_silent';
+              androidDetails = AndroidNotificationDetails(
+                channelId,
+                'Prayer Time Notifications (Silent)',
+                channelDescription: 'Silent prayer time notifications with vibration only',
+                importance: Importance.max,
+                priority: Priority.high,
+                enableVibration: isVibrationEnabled,
+                playSound: false,
+                icon: '@mipmap/ic_launcher',
+                largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+                styleInformation: BigTextStyleInformation(
+                  _getPrayerMessage(prayerName),
+                  contentTitle: 'Time for $prayerName Prayer',
+                  summaryText: 'FGIslamicPrayer',
+                ),
+                category: AndroidNotificationCategory.reminder,
+                visibility: NotificationVisibility.public,
+                fullScreenIntent: true,
+                ongoing: false,
+                autoCancel: false,
+                showWhen: true,
+                timeoutAfter: 60000,
+              );
+            }
+          } else {
+            // User wants silent notification (no azan sound)
             channelId = 'prayer_notifications_silent';
             androidDetails = AndroidNotificationDetails(
               channelId,
@@ -290,7 +317,7 @@ class NotificationService {
         );
       }
       
-      // If using silent notification, schedule audio playback separately
+      // If using silent notification channel but user wants azan, schedule audio playback separately
       if (channelId == 'prayer_notifications_silent' && isAzanEnabled) {
         _scheduleAudioPlayback(prayerName, scheduledTime, isFullAzan);
       }
