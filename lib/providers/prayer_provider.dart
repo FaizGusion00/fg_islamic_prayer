@@ -750,7 +750,19 @@ class PrayerProvider with ChangeNotifier {
   // Method to check if cached data is still valid (within 6 hours)
 
   Future<void> _scheduleNotifications() async {
-    if (_prayerTimes == null) return;
+    if (_prayerTimes == null) {
+      print('❌ No prayer times available, cannot schedule notifications');
+      return;
+    }
+    
+    print('🔔 Starting notification scheduling...');
+    
+    // Check notification permissions first
+    final permissionsGranted = await NotificationService.checkNotificationPermissions();
+    if (!permissionsGranted) {
+      print('❌ Notification permissions not granted, cannot schedule notifications');
+      return;
+    }
     
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now();
@@ -765,12 +777,19 @@ class PrayerProvider with ChangeNotifier {
       'Isha': _prayerTimes!.isha,
     };
     
+    print('📅 Prayer times for today:');
+    for (final entry in prayers.entries) {
+      print('  ${entry.key}: ${entry.value}');
+    }
+    
     for (final entry in prayers.entries) {
       final prayerName = entry.key;
       final prayerTime = entry.value;
       
       // Check if notifications are enabled for this prayer
       final isEnabled = prefs.getBool('notification_${prayerName.toLowerCase()}') ?? true;
+      
+      print('🔔 $prayerName: enabled=$isEnabled, time=$prayerTime');
       
       if (isEnabled && prayerTime != null) {
         final timeParts = prayerTime.split(':');
@@ -782,14 +801,35 @@ class PrayerProvider with ChangeNotifier {
           int.parse(timeParts[1]),
         );
         
+        print('⏰ $prayerName scheduled for: $prayerDateTime (now: ${DateTime.now()})');
+        
         if (prayerDateTime.isAfter(DateTime.now())) {
+          print('✅ Scheduling notification for $prayerName at $prayerDateTime');
           await NotificationService.schedulePrayerNotification(
             prayerName,
             prayerDateTime,
           );
+
+          // Schedule 30-minute pre-reminder (vibration only) for all prayers except Sunrise
+          if (prayerName.toLowerCase() != 'sunrise') {
+            final preReminderTime = prayerDateTime.subtract(const Duration(minutes: 30));
+            if (preReminderTime.isAfter(DateTime.now())) {
+              print('🔕 Scheduling pre-reminder for $prayerName at $preReminderTime');
+              await NotificationService.schedulePreReminderNotification(
+                prayerName,
+                preReminderTime,
+              );
+            }
+          }
+        } else {
+          print('⏭️ $prayerName time has passed, skipping notification');
         }
+      } else {
+        print('❌ $prayerName notification disabled or time is null');
       }
     }
+    
+    print('🔔 Notification scheduling completed');
   }
 
   Future<void> updateCalculationMethod(String method) async {
@@ -843,6 +883,29 @@ class PrayerProvider with ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  // Method to manually trigger notifications for testing
+  Future<void> testNotifications() async {
+    print('🧪 Testing notifications...');
+    
+    // Check permissions
+    final permissionsGranted = await NotificationService.checkNotificationPermissions();
+    print('🔔 Permissions granted: $permissionsGranted');
+    
+    if (!permissionsGranted) {
+      print('❌ Notification permissions not granted');
+      return;
+    }
+    
+    // Show test notification
+    await NotificationService.showTestNotification();
+    
+    // Schedule a test notification for 10 seconds from now
+    final testTime = DateTime.now().add(const Duration(seconds: 10));
+    await NotificationService.schedulePrayerNotification('Test', testTime);
+    
+    print('✅ Test notifications scheduled');
   }
 
   String? getNextPrayer() {

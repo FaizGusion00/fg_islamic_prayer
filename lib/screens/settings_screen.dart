@@ -14,27 +14,23 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: isDarkMode
-                ? AppTheme.darkGradient
-                : AppTheme.primaryGradient,
+            gradient:
+                isDarkMode ? AppTheme.darkGradient : AppTheme.primaryGradient,
           ),
         ),
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: isDarkMode
-              ? AppTheme.darkGradient
-              : AppTheme.lightGradient,
+          gradient: isDarkMode ? AppTheme.darkGradient : AppTheme.lightGradient,
         ),
         child: Consumer2<SettingsProvider, PrayerProvider>(
           builder: (context, settingsProvider, prayerProvider, child) {
@@ -62,9 +58,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Prayer Calculation Section
                 _buildSectionCard(
                   'Prayer Calculation',
@@ -92,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     if (prayerProvider.apiSource == 'waktusolat') ...[
-                                            _buildMalaysianZoneDropdownTile(
+                      _buildMalaysianZoneDropdownTile(
                         'Malaysian Zone',
                         'Select your Malaysian prayer time zone',
                         Icons.location_on,
@@ -120,18 +116,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                     // Only show calculation method and Asr juristic method for Aladhan API
-                    if (prayerProvider.apiSource == 'aladhan') ...[                    
+                    if (prayerProvider.apiSource == 'aladhan') ...[
                       _buildDropdownTile(
                         'Calculation Method',
                         'Method for calculating prayer times',
                         Icons.public,
                         settingsProvider.calculationMethod.toString(),
-                        prayerProvider.calculationMethods.entries.map((e) => 
-                          DropdownMenuItem(
-                            value: e.key.toString(),
-                            child: Text(e.value),
-                          )
-                        ).toList(),
+                        prayerProvider.calculationMethods.entries
+                            .map((e) => DropdownMenuItem(
+                                  value: e.key.toString(),
+                                  child: Text(e.value),
+                                ))
+                            .toList(),
                         (value) {
                           if (value != null) {
                             settingsProvider.setCalculationMethod(value);
@@ -144,12 +140,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'Method for calculating Asr prayer time',
                         Icons.wb_sunny,
                         settingsProvider.asrMethod.toString(),
-                        prayerProvider.asrMethods.entries.map((e) => 
-                          DropdownMenuItem(
-                            value: e.key.toString(),
-                            child: Text(e.value),
-                          )
-                        ).toList(),
+                        prayerProvider.asrMethods.entries
+                            .map((e) => DropdownMenuItem(
+                                  value: e.key.toString(),
+                                  child: Text(e.value),
+                                ))
+                            .toList(),
                         (value) {
                           if (value != null) {
                             settingsProvider.setAsrMethod(value);
@@ -160,40 +156,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Prayer Notifications Section
                 _buildSectionCard(
                   'Prayer Notifications',
                   Icons.notifications_active,
                   [
-                    ...prayerProvider.prayerNames.map((prayerKey) =>
-                      _buildPrayerNotificationTile(
-                        settingsProvider.prayerDisplayNames[prayerKey] ?? (prayerKey.isNotEmpty ? prayerKey[0].toUpperCase() + prayerKey.substring(1) : prayerKey),
-                        prayerKey,
-                        settingsProvider,
-                      ),
-                    ).toList(),
+                    ...prayerProvider.prayerNames
+                        .map(
+                          (prayerKey) => _buildPrayerNotificationTile(
+                            settingsProvider.prayerDisplayNames[prayerKey] ??
+                                (prayerKey.isNotEmpty
+                                    ? prayerKey[0].toUpperCase() +
+                                        prayerKey.substring(1)
+                                    : prayerKey),
+                            prayerKey,
+                            settingsProvider,
+                          ),
+                        )
+                        .toList(),
                     // Test notification button
                     ListTile(
-                      leading: const Icon(Icons.notifications_active, color: Colors.blue),
+                      leading: const Icon(Icons.notifications_active,
+                          color: Colors.blue),
                       title: const Text('Send Test Notification'),
-                      subtitle: const Text('Debug: Check if notifications work on your device'),
+                      subtitle: const Text(
+                          'Debug: Check if notifications work on your device'),
                       onTap: () async {
                         await NotificationService.showTestNotification();
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Test notification sent!')),
+                            const SnackBar(
+                                content: Text('Test notification sent!')),
+                          );
+                        }
+                      },
+                    ),
+                    // Test notification scheduling
+                    ListTile(
+                      leading: const Icon(Icons.schedule, color: Colors.orange),
+                      title: const Text('Test Notification Scheduling'),
+                      subtitle: const Text(
+                          'Debug: Test scheduled notifications (10 seconds)'),
+                      onTap: () async {
+                        await prayerProvider.testNotifications();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Test notifications scheduled! Check in 10 seconds.'),
+                              backgroundColor: Colors.orange,
+                            ),
                           );
                         }
                       },
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // About Section
                 _buildSectionCard(
                   'About',
@@ -212,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _buildInfoTile(
                       'App Version',
-                      '1.0.5(5)',
+                      '1.0.8(8)',
                       Icons.info_outline,
                     ),
                     _buildInfoTile(
@@ -227,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 32),
               ],
             );
@@ -236,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -267,7 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildSwitchTile(
     String title,
     String subtitle,
@@ -288,7 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildDropdownTile(
     String title,
     String subtitle,
@@ -319,7 +343,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildMalaysianZoneDropdownTile(
     String title,
     String subtitle,
@@ -343,7 +367,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'KDH05': 'KDH05 - Bandar Baharu, Kulim',
         'KDH06': 'KDH06 - Langkawi',
         'KDH07': 'KDH07 - Puncak Gunung Jerai',
-        'KTN01': 'KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai',
+        'KTN01':
+            'KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai',
         'KTN02': 'KTN02 - Gua Musang, Jeli, Lojing',
         'MLK01': 'MLK01 - Seluruh Negeri Melaka',
         'NGS01': 'NGS01 - Tampin, Jempol',
@@ -360,30 +385,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'PRK02': 'PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar',
         'PRK03': 'PRK03 - Lenggong, Pengkalan Hulu, Grik',
         'PRK04': 'PRK04 - Temengor, Belum',
-        'PRK05': 'PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor',
+        'PRK05':
+            'PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor',
         'PRK06': 'PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar',
         'PRK07': 'PRK07 - Bukit Larut',
         'PLS01': 'PLS01 - Seluruh Negeri Perlis',
         'PNG01': 'PNG01 - Seluruh Negeri Pulau Pinang',
         'SBH01': 'SBH01 - Bahagian Sandakan (Timur)',
         'SBH02': 'SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut',
-        'SBH03': 'SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku',
+        'SBH03':
+            'SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku',
         'SBH04': 'SBH04 - Bandar Tawau, Balong, Merotai, Kalabakan',
         'SBH05': 'SBH05 - Kudat, Kota Marudu, Pitas, Pulau Banggi',
         'SBH06': 'SBH06 - Gunung Kinabalu',
-        'SBH07': 'SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan',
+        'SBH07':
+            'SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan',
         'SBH08': 'SBH08 - Pensiangan, Keningau, Tambunan, Nabawan',
-        'SBH09': 'SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston',
+        'SBH09':
+            'SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston',
         'SWK01': 'SWK01 - Limbang, Lawas, Sundar, Trusan',
         'SWK02': 'SWK02 - Miri, Niah, Bekenu, Sibuti, Marudi',
         'SWK03': 'SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu',
-        'SWK04': 'SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit',
-        'SWK05': 'SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai',
-        'SWK06': 'SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok',
+        'SWK04':
+            'SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit',
+        'SWK05':
+            'SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai',
+        'SWK06':
+            'SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok',
         'SWK07': 'SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam',
         'SWK08': 'SWK08 - Kuching, Bau, Lundu, Sematan',
         'SWK09': 'SWK09 - Zon Khas (Kampung Patarikan)',
-        'SGR01': 'SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam',
+        'SGR01':
+            'SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam',
         'SGR02': 'SGR02 - Kuala Selangor, Sabak Bernam',
         'SGR03': 'SGR03 - Klang, Kuala Langat',
         'TRG01': 'TRG01 - Kuala Terengganu, Marang, Kuala Nerus',
@@ -395,7 +428,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       };
       displayValue = zoneNames[currentZone] ?? '$currentZone - Unknown Zone';
     }
-    
+
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
@@ -426,7 +459,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'JHR04',
-                child: Text('JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak'),
+                child: Text(
+                    'JHR04 - Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak'),
               ),
               // Kedah zones
               const DropdownMenuItem(
@@ -460,7 +494,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Kelantan zones
               const DropdownMenuItem(
                 value: 'KTN01',
-                child: Text('KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai'),
+                child: Text(
+                    'KTN01 - Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai'),
               ),
               const DropdownMenuItem(
                 value: 'KTN02',
@@ -495,7 +530,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'PHG03',
-                child: Text('PHG03 - Jerantut, Temerloh, Maran, Bera, Chenor, Jengka'),
+                child: Text(
+                    'PHG03 - Jerantut, Temerloh, Maran, Bera, Chenor, Jengka'),
               ),
               const DropdownMenuItem(
                 value: 'PHG04',
@@ -507,7 +543,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'PHG06',
-                child: Text('PHG06 - Cameron Highlands, Genting Highlands, Bukit Fraser'),
+                child: Text(
+                    'PHG06 - Cameron Highlands, Genting Highlands, Bukit Fraser'),
               ),
               const DropdownMenuItem(
                 value: 'PHG07',
@@ -520,7 +557,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'PRK02',
-                child: Text('PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar'),
+                child: Text(
+                    'PRK02 - Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar'),
               ),
               const DropdownMenuItem(
                 value: 'PRK03',
@@ -532,11 +570,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'PRK05',
-                child: Text('PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor'),
+                child: Text(
+                    'PRK05 - Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor'),
               ),
               const DropdownMenuItem(
                 value: 'PRK06',
-                child: Text('PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar'),
+                child:
+                    Text('PRK06 - Selama, Taiping, Bagan Serai, Parit Buntar'),
               ),
               const DropdownMenuItem(
                 value: 'PRK07',
@@ -559,11 +599,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'SBH02',
-                child: Text('SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut'),
+                child:
+                    Text('SBH02 - Beluran, Telupid, Pinangah, Terusan, Kuamut'),
               ),
               const DropdownMenuItem(
                 value: 'SBH03',
-                child: Text('SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku'),
+                child: Text(
+                    'SBH03 - Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku'),
               ),
               const DropdownMenuItem(
                 value: 'SBH04',
@@ -579,7 +621,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'SBH07',
-                child: Text('SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan'),
+                child: Text(
+                    'SBH07 - Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan'),
               ),
               const DropdownMenuItem(
                 value: 'SBH08',
@@ -587,7 +630,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'SBH09',
-                child: Text('SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston'),
+                child: Text(
+                    'SBH09 - Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston'),
               ),
               // Sarawak zones
               const DropdownMenuItem(
@@ -600,23 +644,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const DropdownMenuItem(
                 value: 'SWK03',
-                child: Text('SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu'),
+                child: Text(
+                    'SWK03 - Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu'),
               ),
               const DropdownMenuItem(
                 value: 'SWK04',
-                child: Text('SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit'),
+                child: Text(
+                    'SWK04 - Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit'),
               ),
               const DropdownMenuItem(
                 value: 'SWK05',
-                child: Text('SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai'),
+                child: Text(
+                    'SWK05 - Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai'),
               ),
               const DropdownMenuItem(
                 value: 'SWK06',
-                child: Text('SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok'),
+                child: Text(
+                    'SWK06 - Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok'),
               ),
               const DropdownMenuItem(
                 value: 'SWK07',
-                child: Text('SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam'),
+                child: Text(
+                    'SWK07 - Serian, Simunjan, Samarahan, Sebuyau, Meludam'),
               ),
               const DropdownMenuItem(
                 value: 'SWK08',
@@ -629,7 +678,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Selangor zones
               const DropdownMenuItem(
                 value: 'SGR01',
-                child: Text('SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam'),
+                child: Text(
+                    'SGR01 - Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam'),
               ),
               const DropdownMenuItem(
                 value: 'SGR02',
@@ -677,7 +727,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildPrayerNotificationTile(
     String prayerName,
     String prayerKey,
@@ -712,7 +762,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SwitchListTile(
                 title: const Text('Enable Notification'),
                 value: isEnabled,
-                onChanged: (_) => settingsProvider.toggleNotification(prayerKey),
+                onChanged: (_) =>
+                    settingsProvider.toggleNotification(prayerKey),
                 activeColor: Theme.of(context).brightness == Brightness.dark
                     ? AppTheme.primaryGold
                     : AppTheme.primaryTeal,
@@ -736,7 +787,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   selected: !isAzanEnabled,
                                   onSelected: (selected) {
                                     if (selected) {
-                                      settingsProvider.setAzanSound(prayerKey, false, false);
+                                      settingsProvider.setAzanSound(
+                                          prayerKey, false, false);
                                     }
                                   },
                                 ),
@@ -748,7 +800,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   selected: isAzanEnabled && !isFullAzan,
                                   onSelected: (selected) {
                                     if (selected) {
-                                      settingsProvider.setAzanSound(prayerKey, true, false);
+                                      settingsProvider.setAzanSound(
+                                          prayerKey, true, false);
                                     }
                                   },
                                 ),
@@ -760,7 +813,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   selected: isAzanEnabled && isFullAzan,
                                   onSelected: (selected) {
                                     if (selected) {
-                                      settingsProvider.setAzanSound(prayerKey, true, true);
+                                      settingsProvider.setAzanSound(
+                                          prayerKey, true, true);
                                     }
                                   },
                                 ),
@@ -778,7 +832,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ],
     );
   }
-  
+
   Widget _buildActionTile(
     String title,
     String subtitle,
@@ -793,7 +847,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: onTap,
     );
   }
-  
+
   Widget _buildInfoTile(
     String title,
     String value,
@@ -805,9 +859,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       subtitle: Text(value),
     );
   }
-  
 
-  
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

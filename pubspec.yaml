@@ -2,7 +2,7 @@ name: fgislamic_prayer
 description: A beautiful Islamic prayer app with accurate prayer times, Qibla direction, and donation features.
 publish_to: 'none'
 
-version: 1.0.5+5
+version: 1.0.8+8
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -20,6 +20,7 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   flutter_compass: ^0.8.0
   audioplayers: ^5.2.1
+  flutter_native_timezone: ^2.0.0
   qr_flutter: ^4.1.0
   intl: ^0.18.1
   provider: ^6.1.1

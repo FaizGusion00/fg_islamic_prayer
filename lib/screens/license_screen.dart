@@ -8,23 +8,20 @@ class LicenseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('License & Credits'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: isDarkMode
-                ? AppTheme.darkGradient
-                : AppTheme.primaryGradient,
+            gradient:
+                isDarkMode ? AppTheme.darkGradient : AppTheme.primaryGradient,
           ),
         ),
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: isDarkMode
-              ? AppTheme.darkGradient
-              : AppTheme.lightGradient,
+          gradient: isDarkMode ? AppTheme.darkGradient : AppTheme.lightGradient,
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -34,19 +31,19 @@ class LicenseScreen extends StatelessWidget {
               // App Info Section
               _buildAppInfoSection(context),
               const SizedBox(height: 24),
-              
+
               // License Section
               _buildLicenseSection(context),
               const SizedBox(height: 24),
-              
+
               // Credits Section
               _buildCreditsSection(context),
               const SizedBox(height: 24),
-              
+
               // Contact Section
               _buildContactSection(context),
               const SizedBox(height: 24),
-              
+
               // Islamic Message Section
               _buildIslamicMessageSection(context),
             ],
@@ -55,7 +52,7 @@ class LicenseScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildAppInfoSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -69,7 +66,10 @@ class LicenseScreen extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: Theme.of(context).brightness == Brightness.dark
-                    ? [AppTheme.primaryGold, AppTheme.primaryGold.withValues(alpha: 0.8)]
+                    ? [
+                        AppTheme.primaryGold,
+                        AppTheme.primaryGold.withValues(alpha: 0.8)
+                      ]
                     : [AppTheme.primaryTeal, AppTheme.emeraldGreen],
               ),
               shape: BoxShape.circle,
@@ -91,28 +91,28 @@ class LicenseScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // App Name
           Text(
             'FGIslamicPrayer',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppTheme.primaryGold
-                  : AppTheme.primaryTeal,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.primaryGold
+                      : AppTheme.primaryTeal,
+                ),
           ),
           const SizedBox(height: 8),
-          
+
           // Version
           Text(
-            'Version 1.0.5(5)',
+            'Version 1.0.8(8)',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+                  color: Colors.grey[600],
+                ),
           ),
           const SizedBox(height: 16),
-          
+
           // Description
           Text(
             'A free Islamic prayer app with accurate prayer times, Qibla direction, and donation features. No ads, no charges, forever.',
@@ -123,7 +123,7 @@ class LicenseScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildLicenseSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -143,16 +143,15 @@ class LicenseScreen extends StatelessWidget {
               Text(
                 'License',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppTheme.primaryGold
-                      : AppTheme.primaryTeal,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.primaryGold
+                          : AppTheme.primaryTeal,
+                    ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -174,15 +173,15 @@ class LicenseScreen extends StatelessWidget {
               'For inquiries: fgcompany.developer@gmail.com\n\n'
               'May this app be a continuous charity (sadaqah jariyah). Ameen.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                height: 1.5,
-              ),
+                    height: 1.5,
+                  ),
             ),
           ),
         ],
       ),
     );
   }
-  
+
   Widget _buildCreditsSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -202,16 +201,15 @@ class LicenseScreen extends StatelessWidget {
               Text(
                 'Credits & Acknowledgments',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppTheme.primaryGold
-                      : AppTheme.primaryTeal,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.primaryGold
+                          : AppTheme.primaryTeal,
+                    ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
           _buildCreditItem(
             context,
             'Prayer Times API',
@@ -220,7 +218,6 @@ class LicenseScreen extends StatelessWidget {
             'https://api.waktusolat.app/',
           ),
           const SizedBox(height: 12),
-          
           _buildCreditItem(
             context,
             'Flutter Framework',
@@ -229,7 +226,6 @@ class LicenseScreen extends StatelessWidget {
             'https://flutter.dev',
           ),
           const SizedBox(height: 12),
-          
           _buildCreditItem(
             context,
             'Islamic Design Inspiration',
@@ -238,7 +234,6 @@ class LicenseScreen extends StatelessWidget {
             null,
           ),
           const SizedBox(height: 12),
-          
           _buildCreditItem(
             context,
             'Open Source Libraries',
@@ -250,7 +245,7 @@ class LicenseScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildCreditItem(
     BuildContext context,
     String title,
@@ -283,24 +278,24 @@ class LicenseScreen extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppTheme.primaryGold
-                          : AppTheme.primaryTeal,
-                      fontWeight: FontWeight.w500,
-                    ),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppTheme.primaryGold
+                              : AppTheme.primaryTeal,
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                          color: Colors.grey[600],
+                        ),
                   ),
                 ],
               ),
@@ -316,7 +311,7 @@ class LicenseScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildContactSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -336,16 +331,15 @@ class LicenseScreen extends StatelessWidget {
               Text(
                 'Contact & Support',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppTheme.primaryGold
-                      : AppTheme.primaryTeal,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.primaryGold
+                          : AppTheme.primaryTeal,
+                    ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
           _buildContactItem(
             context,
             'Support Email',
@@ -354,7 +348,6 @@ class LicenseScreen extends StatelessWidget {
             () => _launchUrl('mailto:fgcompany.developer@gmail.com'),
           ),
           const SizedBox(height: 12),
-          
           _buildContactItem(
             context,
             'Developer',
@@ -363,7 +356,6 @@ class LicenseScreen extends StatelessWidget {
             null,
           ),
           const SizedBox(height: 12),
-          
           _buildContactItem(
             context,
             'Company',
@@ -375,7 +367,7 @@ class LicenseScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildContactItem(
     BuildContext context,
     String label,
@@ -416,14 +408,14 @@ class LicenseScreen extends StatelessWidget {
                   Text(
                     label,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                          color: Colors.grey[600],
+                        ),
                   ),
                   Text(
                     value,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ],
               ),
@@ -439,7 +431,7 @@ class LicenseScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildIslamicMessageSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -454,61 +446,56 @@ class LicenseScreen extends StatelessWidget {
             size: 40,
           ),
           const SizedBox(height: 16),
-          
           Text(
             'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppTheme.primaryGold
-                  : AppTheme.primaryTeal,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.primaryGold
+                      : AppTheme.primaryTeal,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          
           Text(
             'In the name of Allah, the Most Gracious, the Most Merciful',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontStyle: FontStyle.italic,
-              color: Colors.grey[600],
-            ),
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey[600],
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          
           Text(
             'This app is developed as a free service to the Muslim community. May Allah accept our efforts and make this a source of continuous reward (sadaqah jariyah) for all who contributed to its development and use.',
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          
           Text(
             'آمين يا رب العالمين',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppTheme.primaryGold
-                  : AppTheme.primaryTeal,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.primaryGold
+                      : AppTheme.primaryTeal,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          
           Text(
             'Ameen, O Lord of the worlds',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontStyle: FontStyle.italic,
-              color: Colors.grey[600],
-            ),
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey[600],
+                ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
-  
+
   Future<void> _launchUrl(String url) async {
     try {
       final Uri uri = Uri.parse(url);
