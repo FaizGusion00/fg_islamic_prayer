@@ -251,9 +251,8 @@ class SlidePageRoute<T> extends PageRouteBuilder<T> {
   SlidePageRoute({
     required this.child,
     this.direction = AxisDirection.right,
-    RouteSettings? settings,
+    super.settings,
   }) : super(
-          settings: settings,
           pageBuilder: (context, animation, secondaryAnimation) => child,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             Offset begin;

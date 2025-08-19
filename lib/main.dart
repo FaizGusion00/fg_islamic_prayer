@@ -45,7 +45,7 @@ Future<void> _requestPermissions() async {
     // Request notification permission for Android 13+
     if (await Permission.notification.isDenied || await Permission.notification.isRestricted) {
       final status = await Permission.notification.request();
-      print('Notification permission status: ' + status.toString());
+      print('Notification permission status: $status');
     } else {
       print('Notification permission already granted or not required.');
     }

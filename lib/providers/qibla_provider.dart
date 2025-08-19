@@ -16,7 +16,7 @@ class QiblaProvider with ChangeNotifier {
   double? _magneticDeclination;
   Timer? _locationUpdateTimer;
   StreamSubscription<CompassEvent>? _compassSubscription;
-  List<double> _compassReadings = [];
+  final List<double> _compassReadings = [];
   DateTime? _lastLocationUpdate;
   
   // Most precise Kaaba coordinates (verified from multiple Islamic sources)
@@ -37,8 +37,12 @@ class QiblaProvider with ChangeNotifier {
     if (_qiblaDirection == null || _compassHeading == null) return null;
     double angle = _qiblaDirection! - _compassHeading!;
     // Normalize angle to -180 to 180 range
-    while (angle > 180) angle -= 360;
-    while (angle < -180) angle += 360;
+    while (angle > 180) {
+      angle -= 360;
+    }
+    while (angle < -180) {
+      angle += 360;
+    }
     return angle;
   }
   
@@ -232,8 +236,12 @@ class QiblaProvider with ChangeNotifier {
     double correctedDirection = direction + _magneticDeclination!;
     
     // Normalize to 0-360 range
-    while (correctedDirection < 0) correctedDirection += 360;
-    while (correctedDirection >= 360) correctedDirection -= 360;
+    while (correctedDirection < 0) {
+      correctedDirection += 360;
+    }
+    while (correctedDirection >= 360) {
+      correctedDirection -= 360;
+    }
     
     return correctedDirection;
   }

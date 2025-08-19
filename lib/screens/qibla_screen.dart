@@ -114,7 +114,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               size: 64,
               color: Colors.red,
@@ -335,7 +335,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.info_outline,
                 color: Colors.blue,
                 size: 20,
@@ -367,7 +367,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.lightbulb_outline, color: Colors.green, size: 16),
+                const Icon(Icons.lightbulb_outline, color: Colors.green, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

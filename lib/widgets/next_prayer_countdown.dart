@@ -75,7 +75,7 @@ class _NextPrayerCountdownState extends State<NextPrayerCountdown> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.schedule,
                     color: Colors.white,
                     size: 20,

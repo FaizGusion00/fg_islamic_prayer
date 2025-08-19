@@ -75,7 +75,7 @@ class _QiblaCompassState extends State<QiblaCompass>
             final compassSize = constraints.maxWidth < 400 ? constraints.maxWidth * 0.9 : 320.0;
             return Column(
               children: [
-                Container(
+                SizedBox(
                   width: compassSize,
                   height: compassSize,
                   child: Stack(
@@ -91,8 +91,8 @@ class _QiblaCompassState extends State<QiblaCompass>
                 ),
                 _buildAccuracyIndicator(qiblaAngle.abs()),
                 if (needsCalibration)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
                       'Compass accuracy is poor. Move your phone in a figure-8 motion to calibrate.',
                       style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
@@ -100,8 +100,8 @@ class _QiblaCompassState extends State<QiblaCompass>
                     ),
                   ),
                 if (usingFallbackDeclination)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: Text(
                       'Warning: Using fallback magnetic declination. Accuracy may be reduced.',
                       style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
@@ -203,7 +203,7 @@ class _QiblaCompassState extends State<QiblaCompass>
           scale: _needleAnimation.value,
           child: Transform.rotate(
             angle: relativeQiblaAngle * (math.pi / 180),
-            child: Container(
+            child: SizedBox(
               width: 280,
               height: 280,
               child: CustomPaint(
@@ -287,7 +287,7 @@ class _QiblaCompassState extends State<QiblaCompass>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.mosque,
                       color: Colors.white,
                       size: 28,
@@ -324,7 +324,7 @@ class _QiblaCompassState extends State<QiblaCompass>
             ),
           ],
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
@@ -332,7 +332,7 @@ class _QiblaCompassState extends State<QiblaCompass>
               color: Colors.white,
               size: 16,
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Text(
               'N',
               style: TextStyle(
@@ -351,7 +351,7 @@ class _QiblaCompassState extends State<QiblaCompass>
     final accuracy = qiblaAngle.abs();
     final isAccurate = accuracy <= 5;
     
-    return Container(
+    return SizedBox(
       width: 320,
       height: 320,
       child: CustomPaint(
@@ -456,7 +456,7 @@ class _QiblaCompassState extends State<QiblaCompass>
                      'Location',
                      locationAccuracy != 'poor' && locationAccuracy != 'unknown',
                      Icons.location_on,
-                     locationAccuracy != 'unknown' ? locationAccuracy! : 'N/A',
+                     locationAccuracy != 'unknown' ? locationAccuracy : 'N/A',
                    ),
                   _buildStatusIndicator(
                     'Compass',
@@ -555,7 +555,7 @@ class _QiblaCompassState extends State<QiblaCompass>
             const SizedBox(width: 2),
             Tooltip(
               message: tooltipText,
-              child: Icon(Icons.info_outline, color: Colors.grey, size: 14),
+              child: const Icon(Icons.info_outline, color: Colors.grey, size: 14),
             ),
           ],
         ),

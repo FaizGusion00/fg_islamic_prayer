@@ -153,7 +153,7 @@ class PrayerTimeCard extends StatelessWidget {
                                     : (isDarkMode ? AppTheme.primaryGold.withValues(alpha: 0.7) : AppTheme.primaryTeal.withValues(alpha: 0.7)),
                               )
                             else
-                              Icon(
+                              const Icon(
                                 Icons.notifications_off,
                                 size: 16,
                                 color: Colors.grey,

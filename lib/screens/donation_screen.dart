@@ -94,7 +94,7 @@ class _DonationScreenState extends State<DonationScreen> with TickerProviderStat
       SnackBar(
         content: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.check_circle,
               color: Colors.white,
               size: 20,

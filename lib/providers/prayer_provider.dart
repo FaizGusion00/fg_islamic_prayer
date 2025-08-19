@@ -237,6 +237,9 @@ class PrayerProvider with ChangeNotifier {
           _error = 'Using cached prayer times. Please check your internet connection for updated times.';
         }
       }
+      
+      // Schedule notifications for prayer times
+      await _schedulePrayerNotifications();
     } catch (e) {
       print('Error getting location: $e');
       _error = e.toString();
@@ -538,7 +541,7 @@ class PrayerProvider with ChangeNotifier {
             if (prayerData != null) {
               // Convert Waktu Solat format to our PrayerTimes format
               // Handle both string times and Unix timestamps
-              String? _convertTime(dynamic time) {
+              String? convertTime(dynamic time) {
                 if (time == null) return null;
                 if (time is int) {
                   // Convert Unix timestamp to HH:MM format
@@ -549,13 +552,13 @@ class PrayerProvider with ChangeNotifier {
               }
               
               final timingsMap = {
-                'Fajr': _convertTime(prayerData['fajr'] ?? prayerData['subuh']),
-                'Sunrise': _convertTime(prayerData['syuruk'] ?? prayerData['sunrise']),
-                'Dhuhr': _convertTime(prayerData['dhuhr'] ?? prayerData['zohor']),
-                'Asr': _convertTime(prayerData['asr'] ?? prayerData['asar']),
-                'Maghrib': _convertTime(prayerData['maghrib']),
-                'Isha': _convertTime(prayerData['isha'] ?? prayerData['isyak']),
-                'Imsak': _convertTime(prayerData['imsak']),
+                'Fajr': convertTime(prayerData['fajr'] ?? prayerData['subuh']),
+                'Sunrise': convertTime(prayerData['syuruk'] ?? prayerData['sunrise']),
+                'Dhuhr': convertTime(prayerData['dhuhr'] ?? prayerData['zohor']),
+                'Asr': convertTime(prayerData['asr'] ?? prayerData['asar']),
+                'Maghrib': convertTime(prayerData['maghrib']),
+                'Isha': convertTime(prayerData['isha'] ?? prayerData['isyak']),
+                'Imsak': convertTime(prayerData['imsak']),
               };
               
               // Create date info with Hijri calculation
@@ -973,6 +976,103 @@ class PrayerProvider with ChangeNotifier {
     }
     
     return prayerDateTime.difference(now);
+  }
+
+  /// Schedule notifications for all prayer times
+  Future<void> _schedulePrayerNotifications() async {
+    if (_prayerTimes == null) return;
+    
+    try {
+      print('🔔 Scheduling prayer notifications...');
+      
+      // Cancel existing notifications first
+      await NotificationService.cancelAllNotifications();
+      
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
+      // Schedule notifications for each prayer
+      final prayers = {
+        'Fajr': _prayerTimes!.fajr,
+        'Dhuhr': _prayerTimes!.dhuhr,
+        'Asr': _prayerTimes!.asr,
+        'Maghrib': _prayerTimes!.maghrib,
+        'Isha': _prayerTimes!.isha,
+      };
+      
+      for (final entry in prayers.entries) {
+        if (entry.value != null) {
+          final timeParts = entry.value!.split(':');
+          final prayerDateTime = DateTime(
+            today.year,
+            today.month,
+            today.day,
+            int.parse(timeParts[0]),
+            int.parse(timeParts[1]),
+          );
+          
+          // Only schedule if prayer time is in the future
+          if (prayerDateTime.isAfter(now)) {
+            final prefs = await SharedPreferences.getInstance();
+            final isFullAzan = prefs.getBool('full_azan_${entry.key.toLowerCase()}') ?? false;
+            
+            await NotificationService.schedulePrayerNotification(
+              entry.key,
+              prayerDateTime,
+              isFullAzan: isFullAzan,
+              enablePreReminder: true,
+            );
+            
+            print('✅ Scheduled notification for ${entry.key} at ${entry.value}');
+          } else {
+            print('⏰ ${entry.key} prayer time has passed, skipping notification');
+          }
+        }
+      }
+      
+      // Also schedule for tomorrow's Fajr if today's has passed
+      final fajrTime = _prayerTimes!.fajr;
+      if (fajrTime != null) {
+        final timeParts = fajrTime.split(':');
+        final todayFajr = DateTime(
+          today.year,
+          today.month,
+          today.day,
+          int.parse(timeParts[0]),
+          int.parse(timeParts[1]),
+        );
+        
+        if (todayFajr.isBefore(now)) {
+          final tomorrowFajr = todayFajr.add(const Duration(days: 1));
+          final prefs = await SharedPreferences.getInstance();
+          final isFullAzan = prefs.getBool('full_azan_fajr') ?? false;
+          
+          await NotificationService.schedulePrayerNotification(
+            'Fajr',
+            tomorrowFajr,
+            isFullAzan: isFullAzan,
+            enablePreReminder: true,
+          );
+          
+          print('✅ Scheduled notification for tomorrow\'s Fajr at $fajrTime');
+        }
+      }
+      
+      print('✅ All prayer notifications scheduled successfully');
+    } catch (e) {
+      print('❌ Error scheduling prayer notifications: $e');
+    }
+  }
+
+  /// Refresh location and prayer times
+  Future<void> refreshLocationAndPrayerTimes() async {
+    try {
+      await getCurrentLocation();
+    } catch (e) {
+      print('❌ Error refreshing location and prayer times: $e');
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
 }

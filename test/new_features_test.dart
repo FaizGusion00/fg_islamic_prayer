@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../lib/services/moon_phase_service.dart';
-import '../lib/utils/islamic_quotes.dart';
+import 'package:fgislamic_prayer/services/moon_phase_service.dart';
+import 'package:fgislamic_prayer/utils/islamic_quotes.dart';
 
 void main() {
   group('New Features Tests', () {

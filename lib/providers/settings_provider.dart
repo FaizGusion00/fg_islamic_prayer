@@ -8,7 +8,7 @@ class SettingsProvider with ChangeNotifier {
   bool _isLocationEnabled = true;
   
   // Notification settings for each prayer
-  Map<String, bool> _notificationEnabled = {
+  final Map<String, bool> _notificationEnabled = {
     'fajr': true,
     'sunrise': false,
     'dhuha': false,
@@ -20,7 +20,7 @@ class SettingsProvider with ChangeNotifier {
   };
   
   // Azan settings for each prayer
-  Map<String, bool> _azanEnabled = {
+  final Map<String, bool> _azanEnabled = {
     'fajr': true,
     'sunrise': false,
     'dhuha': false,
@@ -32,7 +32,7 @@ class SettingsProvider with ChangeNotifier {
   };
   
   // Full azan vs short tone for each prayer
-  Map<String, bool> _fullAzan = {
+  final Map<String, bool> _fullAzan = {
     'fajr': true,
     'sunrise': false,
     'dhuha': false,

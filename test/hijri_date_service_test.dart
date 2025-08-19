@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../lib/services/hijri_date_service.dart';
+import 'package:fgislamic_prayer/services/hijri_date_service.dart';
 
 void main() {
   group('HijriDateService Tests', () {

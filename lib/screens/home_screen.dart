@@ -85,6 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           const IslamicHeader(),
                           SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
                           
+                          // Current Location Display
+                          _buildLocationDisplay(),
+                          SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
+                          
                           // Hijri Date
                           const HijriDateWidget(),
                           SizedBox(height: constraints.maxHeight > 700 ? 20 : 16),
@@ -222,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline,
             color: Colors.red,
             size: 48,
@@ -274,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.location_off,
             color: Colors.grey,
             size: 48,
@@ -394,6 +398,99 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Build location display widget with refresh functionality
+  Widget _buildLocationDisplay() {
+    return Consumer<PrayerProvider>(
+      builder: (context, prayerProvider, child) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? [AppTheme.primaryGold.withValues(alpha: 0.1), AppTheme.primaryTeal.withValues(alpha: 0.1)]
+                  : [AppTheme.primaryTeal.withValues(alpha: 0.05), AppTheme.emeraldGreen.withValues(alpha: 0.05)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppTheme.primaryGold.withValues(alpha: 0.3)
+                  : AppTheme.primaryTeal.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.location_on,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.primaryGold
+                    : AppTheme.primaryTeal,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current Location',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppTheme.primaryGold
+                            : AppTheme.primaryTeal,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (prayerProvider.locationName != null)
+                      Text(
+                        prayerProvider.locationName!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      )
+                    else if (prayerProvider.isLoading)
+                      const Text(
+                        'Detecting location...',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      )
+                    else
+                      const Text(
+                        'Location not available',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                    if (prayerProvider.currentPosition != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${prayerProvider.currentPosition!.latitude.toStringAsFixed(4)}, ${prayerProvider.currentPosition!.longitude.toStringAsFixed(4)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: prayerProvider.isLoading
+                    ? null
+                    : () => prayerProvider.refreshLocationAndPrayerTimes(),
+                icon: Icon(
+                  prayerProvider.isLoading ? Icons.hourglass_empty : Icons.refresh,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.primaryGold
+                      : AppTheme.primaryTeal,
+                ),
+                tooltip: 'Refresh location and prayer times',
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

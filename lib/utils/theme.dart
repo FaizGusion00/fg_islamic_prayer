@@ -81,7 +81,7 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: primaryTeal),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
@@ -109,7 +109,7 @@ class AppTheme {
       primarySwatch: _createMaterialColor(primaryTeal),
       primaryColor: primaryTeal,
       scaffoldBackgroundColor: darkSurface,
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: accentGreen,
         secondary: softGold,
         tertiary: mintGreen,
@@ -138,7 +138,7 @@ class AppTheme {
           statusBarIconBrightness: Brightness.light,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 12,
         color: darkCard,
         shadowColor: accentGreen.withValues(alpha: 0.2),
@@ -163,14 +163,14 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         ),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: darkCard,
         selectedItemColor: softGold,
         unselectedItemColor: Colors.white54,
         elevation: 8,
         type: BottomNavigationBarType.fixed,
       ),
-      dividerTheme: DividerThemeData(
+      dividerTheme: const DividerThemeData(
         color: Colors.white12,
         thickness: 1,
       ),
